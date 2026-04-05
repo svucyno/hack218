@@ -9,7 +9,7 @@ export const medications: MedicationItem[] = [
     period: 'Morning',
     foodTiming: 'After breakfast',
     note: 'For chest infection, continue for 5 days',
-    status: 'Due now',
+    status: 'Pending',
   },
   {
     id: 'med-2',
@@ -77,7 +77,7 @@ export const caregiverStatus: CaregiverStatusItem[] = [
 export const recentReminders: ReminderItem[] = [
   {
     id: 'rem-1',
-    title: 'Morning antibiotic due now',
+    title: 'Morning antibiotic pending',
     detail: 'Please take after breakfast and tap Taken when complete.',
     time: '8:00 AM',
     level: 'attention',

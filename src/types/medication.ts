@@ -1,4 +1,4 @@
-export type MedicationStatus = 'Due now' | 'Unconfirmed' | 'Taken' | 'Missed';
+export type MedicationStatus = 'Pending' | 'Unconfirmed' | 'Taken' | 'Missed';
 export type MedicationPeriod = 'Morning' | 'Afternoon' | 'Night';
 
 export type MedicationItem = {
@@ -25,4 +25,18 @@ export type ReminderItem = {
   detail: string;
   time: string;
   level: 'info' | 'attention';
+};
+
+export type AdherenceActivityItem = {
+  id: string;
+  title: string;
+  detail: string;
+  timeLabel: string;
+  type: 'taken' | 'missed' | 'unconfirmed' | 'caregiver' | 'system' | 'reminder';
+};
+
+export type CaregiverAlertState = {
+  active: boolean;
+  reason: string;
+  level: 'watch' | 'alert';
 };
