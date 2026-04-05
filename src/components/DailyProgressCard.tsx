@@ -22,7 +22,7 @@ export function DailyProgressCard({ taken, total, missed, unconfirmed }: DailyPr
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>Today&apos;s progress</Text>
+        <Text style={styles.title}>Today's progress</Text>
         <Feather color={theme.colors.primary} name="bar-chart-2" size={18} />
       </View>
       <View style={styles.barRow}>

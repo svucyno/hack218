@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { demoDocument, uploadMethods } from '../data/intakeMockData';
 import type { AppLanguage, TranslationKey } from '../constants/languages';
@@ -15,9 +15,9 @@ import { SuccessStateCard } from '../components/SuccessStateCard';
 import { UploadOptionCard } from '../components/UploadOptionCard';
 import { theme } from '../theme';
 import type { UploadMethod } from '../types/intake';
-import type { RootStackParamList } from '../types/navigation';
+import type { AppTabScreenProps } from '../types/navigation';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'UploadDocument'> & {
+type Props = AppTabScreenProps<'UploadTab'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
@@ -30,7 +30,6 @@ export function UploadDocumentScreen({
   navigation,
   language,
   setLanguage,
-  t,
   selectedUploadMethod,
   selectUploadMethod,
   continueWithSampleDocument,
@@ -47,129 +46,104 @@ export function UploadDocumentScreen({
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        title="Upload prescription or discharge paper"
-        subtitle="Choose the clearest document you have. MedBridge will turn it into a simple medicine schedule to review."
-        rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-        helper={<StatusBadge icon="file-text" label="Printed or clear typed pages work best" variant="accent" />}
-      />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <ScreenHeader
+          eyebrow="Upload"
+          title="Add a medicine document"
+          subtitle="Choose a clear prescription, discharge page, or demo file."
+          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+          helper={<StatusBadge icon="file-text" label="Printed or typed pages work best" variant="accent" />}
+        />
 
-      <View style={styles.heroCard}>
-        <View style={styles.heroIcon}>
-          <Feather color={theme.colors.primary} name="shield" size={24} />
+        {isOpening ? (
+          <SuccessStateCard title="Preparing document" detail="Opening a demo document for extraction preview." />
+        ) : null}
+
+        <View style={styles.optionList}>
+          {uploadMethods.map((option) => (
+            <UploadOptionCard
+              key={option.id}
+              detail={option.detail}
+              icon={option.icon}
+              onPress={() => selectUploadMethod(option.id)}
+              selected={selectedUploadMethod === option.id}
+              title={option.title}
+            />
+          ))}
         </View>
-        <Text style={styles.heroTitle}>Start with one clear document</Text>
-        <Text style={styles.heroBody}>
-          Use a hospital discharge summary, typed prescription, or a clear photo of the medicine list.
-        </Text>
-      </View>
 
-      {isOpening ? (
-        <SuccessStateCard title="Preparing demo document" detail="Mock extraction is starting so you can continue the guided MedBridge story." />
-      ) : null}
+        <View style={styles.tipCard}>
+          <View style={styles.tipRow}>
+            <Feather color={theme.colors.secondary} name="info" size={16} />
+            <Text style={styles.tipTitle}>Helpful note</Text>
+          </View>
+          <Text style={styles.tipBody}>This MVP works best with printed or clearly typed medicine instructions.</Text>
+        </View>
 
-      <View style={styles.optionList}>
-        {uploadMethods.map((option) => (
-          <UploadOptionCard
-            key={option.id}
-            detail={option.detail}
-            icon={option.icon}
-            onPress={() => selectUploadMethod(option.id)}
-            selected={selectedUploadMethod === option.id}
-            title={option.title}
+        <View style={styles.sampleSection}>
+          <Text style={styles.sectionTitle}>Sample document</Text>
+          <DocumentPreviewCard
+            dateLabel={demoDocument.dateLabel}
+            source={demoDocument.source}
+            summary={demoDocument.summary}
+            title={demoDocument.title}
           />
-        ))}
-      </View>
+        </View>
 
-      <View style={styles.noteCard}>
-        <Text style={styles.noteTitle}>Helpful note</Text>
-        <Text style={styles.noteBody}>
-          The demo works best with printed or clearly typed medicine instructions. Handwritten notes may need extra review.
-        </Text>
-      </View>
-
-      <View style={styles.sampleSection}>
-        <Text style={styles.sectionTitle}>Demo sample document</Text>
-        <DocumentPreviewCard
-          dateLabel={demoDocument.dateLabel}
-          source={demoDocument.source}
-          summary={demoDocument.summary}
-          title={demoDocument.title}
-        />
-      </View>
-
-      <View style={styles.footer}>
-        <PrimaryButton icon="play-circle" label="Continue with sample document" onPress={handleContinue} />
-        <SecondaryButton
-          icon="arrow-right"
-          label={selectedUploadMethod ? 'Preview selected upload' : t('backHome')}
-          onPress={() =>
-            selectedUploadMethod ? navigation.navigate('ExtractionPreview') : navigation.navigate('Home')
-          }
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.footer}>
+          <PrimaryButton icon="play-circle" label="Continue with sample" onPress={handleContinue} />
+          <SecondaryButton
+            icon="arrow-right"
+            label={selectedUploadMethod ? 'Preview selected upload' : 'Go to Home'}
+            onPress={() =>
+              selectedUploadMethod ? navigation.navigate('ExtractionPreview') : navigation.navigate('HomeTab')
+            }
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
-    gap: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    paddingTop: 64,
+    gap: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
-  },
-  heroCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.xl,
-    ...theme.shadows.card,
-  },
-  heroIcon: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.md,
-    height: 54,
-    justifyContent: 'center',
-    width: 54,
-  },
-  heroTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
-    fontWeight: '800',
-    lineHeight: 28,
-  },
-  heroBody: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodyLarge,
-    lineHeight: 28,
   },
   optionList: {
     gap: theme.spacing.md,
   },
-  noteCard: {
+  tipCard: {
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.lg,
     gap: theme.spacing.sm,
     padding: theme.spacing.lg,
   },
-  noteTitle: {
+  tipRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+  },
+  tipTitle: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
   },
-  noteBody: {
+  tipBody: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   sampleSection: {
     gap: theme.spacing.md,
@@ -178,7 +152,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontSize: theme.typography.heading,
     fontWeight: '800',
-    lineHeight: 28,
+    lineHeight: 26,
   },
   footer: {
     gap: theme.spacing.md,

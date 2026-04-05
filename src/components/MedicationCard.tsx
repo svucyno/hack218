@@ -45,18 +45,18 @@ export function MedicationCard({
 
       <View style={styles.infoRow}>
         <View style={styles.infoPill}>
-          <Feather color={theme.colors.secondary} name="clock" size={15} />
+          <Feather color={theme.colors.secondary} name="clock" size={14} />
           <Text style={styles.infoText}>{timing}</Text>
         </View>
         <View style={styles.infoPill}>
-          <Feather color={theme.colors.secondary} name="coffee" size={15} />
+          <Feather color={theme.colors.secondary} name="coffee" size={14} />
           <Text style={styles.infoText}>{foodTiming}</Text>
         </View>
       </View>
 
       <Text style={styles.note}>{note}</Text>
-      {status === 'Missed' ? <Text style={styles.helper}>This dose was missed and may need a caregiver check-in.</Text> : null}
-      {status === 'Unconfirmed' ? <Text style={styles.helper}>This dose still needs confirmation from the patient or caregiver.</Text> : null}
+      {status === 'Missed' ? <Text style={styles.helper}>Missed dose. A caregiver check-in may help.</Text> : null}
+      {status === 'Unconfirmed' ? <Text style={styles.helper}>No response yet. This dose still needs confirmation.</Text> : null}
       {actions ? <View style={styles.actions}>{actions}</View> : null}
     </View>
   );
@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
     ...theme.shadows.card,
   },
   cardPending: {
@@ -85,18 +85,19 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   name: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
+    fontSize: theme.typography.bodyLarge,
     fontWeight: '800',
-    lineHeight: 28,
+    lineHeight: 24,
   },
   meta: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '700',
+    lineHeight: 22,
   },
   infoRow: {
     flexDirection: 'row',
@@ -108,9 +109,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.pill,
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: 7,
   },
   infoText: {
     color: theme.colors.textPrimary,
@@ -119,14 +120,14 @@ const styles = StyleSheet.create({
   },
   note: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
   helper: {
     color: theme.colors.secondary,
     fontSize: theme.typography.bodySmall,
     fontWeight: '700',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   actions: {
     gap: theme.spacing.sm,

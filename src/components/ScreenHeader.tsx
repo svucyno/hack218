@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1,
     gap: theme.spacing.xs,
+    paddingRight: theme.spacing.xs,
   },
   eyebrow: {
     color: theme.colors.secondary,
@@ -49,18 +50,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.title,
+    fontSize: 24,
     fontWeight: '800',
-    lineHeight: 34,
+    lineHeight: 30,
   },
   subtitle: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 25,
+    lineHeight: 22,
   },
   action: {
     justifyContent: 'flex-start',
-    paddingTop: 4,
+    paddingTop: 2,
   },
   helper: {
     marginTop: 2,

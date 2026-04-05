@@ -1,6 +1,6 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { LanguageToggle } from '../components/LanguageToggle';
@@ -13,9 +13,9 @@ import { SuccessStateCard } from '../components/SuccessStateCard';
 import { theme } from '../theme';
 import type { ReviewMedicine } from '../types/intake';
 import type { MedicationItem } from '../types/medication';
-import type { RootStackParamList } from '../types/navigation';
+import type { RootStackScreenProps } from '../types/navigation';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ReviewMedicines'> & {
+type Props = RootStackScreenProps<'ReviewMedicines'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
@@ -49,74 +49,69 @@ export function ReviewMedicinesScreen({
       generateSchedule();
       setIsGenerating(false);
       setShowSuccess(true);
-      setTimeout(() => navigation.navigate('MedicationSchedule'), 450);
+      setTimeout(() => navigation.navigate('AppTabs', { screen: 'ScheduleTab' }), 450);
     }, 500);
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        eyebrow="Step 3 of 3"
-        title="Review and confirm medicines"
-        subtitle="Check each medicine before MedBridge creates the daily schedule."
-        rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-        helper={<StatusBadge icon="check-circle" label={`${confirmedCount} confirmed so far`} variant="accent" />}
-      />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <ScreenHeader
+          eyebrow="Step 3 of 3"
+          title="Review medicines"
+          subtitle="Please confirm each medicine before the schedule is created."
+          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+          helper={<StatusBadge icon="check-circle" label={`${confirmedCount} confirmed`} variant="accent" />}
+        />
 
-      {isGenerating ? (
-        <SuccessStateCard title="Generating schedule" detail="Turning reviewed medicines into a simple morning, afternoon, and night plan." />
-      ) : null}
-      {showSuccess ? (
-        <SuccessStateCard title="Schedule generated" detail="Your medicines are ready in a calm daily view." />
-      ) : null}
+        {isGenerating ? (
+          <SuccessStateCard title="Generating schedule" detail="Turning reviewed medicines into a simple day plan." />
+        ) : null}
+        {showSuccess ? <SuccessStateCard title="Schedule generated" detail="The schedule is ready in the Schedule tab." /> : null}
 
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryTitle}>Ready to generate</Text>
-        <Text style={styles.summaryBody}>
-          Confirm the clear entries, edit unclear fields, and remove anything that should not be included.
-        </Text>
-        <View style={styles.summaryBadges}>
-          <StatusBadge icon="layers" label={`${reviewMedicines.length} medicines`} variant="accent" />
-          <StatusBadge icon="alert-circle" label={`${warningCount} warnings`} variant="secondary" />
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Review before generating</Text>
+          <Text style={styles.summaryBody}>Confirm clear entries, edit unclear fields, and remove anything that should not be included.</Text>
+          <View style={styles.summaryBadges}>
+            <StatusBadge icon="layers" label={`${reviewMedicines.length} medicines`} variant="accent" />
+            <StatusBadge icon="alert-circle" label={`${warningCount} warnings`} variant="secondary" />
+          </View>
         </View>
-      </View>
 
-      <View style={styles.list}>
-        {reviewMedicines.map((medicine) => (
-          <ReviewMedicineCard
-            key={medicine.id}
-            medicine={medicine}
-            onConfirm={() => confirmMedicine(medicine.id)}
-            onEdit={() => editMedicine(medicine.id)}
-            onRemove={() => removeMedicine(medicine.id)}
-          />
-        ))}
-      </View>
+        <View style={styles.list}>
+          {reviewMedicines.map((medicine) => (
+            <ReviewMedicineCard
+              key={medicine.id}
+              medicine={medicine}
+              onConfirm={() => confirmMedicine(medicine.id)}
+              onEdit={() => editMedicine(medicine.id)}
+              onRemove={() => removeMedicine(medicine.id)}
+            />
+          ))}
+        </View>
 
-      <View style={styles.helperCard}>
-        <Text style={styles.helperTitle}>Simple review tip</Text>
-        <Text style={styles.helperBody}>
-          If timing or dosage is unclear, use Edit to simulate a correction before schedule generation in the demo.
-        </Text>
-      </View>
-
-      <View style={styles.footer}>
-        <PrimaryButton icon="calendar" label="Generate schedule" onPress={handleGenerate} />
-        <SecondaryButton icon="rotate-ccw" label="Reset review" onPress={resetReviewMedicines} />
-      </View>
-    </ScrollView>
+        <View style={styles.footer}>
+          <PrimaryButton icon="calendar" label="Generate schedule" onPress={handleGenerate} />
+          <SecondaryButton icon="rotate-ccw" label="Reset review" onPress={resetReviewMedicines} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
-    gap: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    paddingTop: 64,
+    gap: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
   },
   summaryCard: {
@@ -132,11 +127,12 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontSize: theme.typography.heading,
     fontWeight: '800',
+    lineHeight: 26,
   },
   summaryBody: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   summaryBadges: {
     flexDirection: 'row',
@@ -145,22 +141,6 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: theme.spacing.md,
-  },
-  helperCard: {
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.lg,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  helperTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
-    fontWeight: '800',
-  },
-  helperBody: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
   },
   footer: {
     gap: theme.spacing.md,

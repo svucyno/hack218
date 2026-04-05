@@ -1,6 +1,16 @@
+import { Feather } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
+import { theme } from '../theme';
+import type { DemoScenarioKey, ReviewMedicine, UploadMethod } from '../types/intake';
+import type {
+  AdherenceActivityItem,
+  CaregiverAlertState,
+  MedicationItem,
+} from '../types/medication';
+import type { MainTabParamList, RootStackParamList } from '../types/navigation';
 import { CaregiverOverviewScreen } from '../screens/CaregiverOverviewScreen';
 import { ExtractionPreviewScreen } from '../screens/ExtractionPreviewScreen';
 import { HomeDashboardScreen } from '../screens/HomeDashboardScreen';
@@ -10,17 +20,11 @@ import { ReminderDetailScreen } from '../screens/ReminderDetailScreen';
 import { ReviewMedicinesScreen } from '../screens/ReviewMedicinesScreen';
 import { UploadDocumentScreen } from '../screens/UploadDocumentScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
-import type { DemoScenarioKey, ReviewMedicine, UploadMethod } from '../types/intake';
-import type {
-  AdherenceActivityItem,
-  CaregiverAlertState,
-  MedicationItem,
-} from '../types/medication';
-import type { RootStackParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
-type AppNavigatorProps = {
+type SharedNavigatorProps = {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
@@ -59,37 +63,110 @@ type AppNavigatorProps = {
   resetDemoState: () => void;
 };
 
-export function AppNavigator({
-  language,
-  setLanguage,
-  t,
-  selectedUploadMethod,
-  reviewMedicines,
-  scheduleMedicines,
-  activityHistory,
-  caregiverAlert,
-  caregiverAlertHistory,
-  nextReminder,
-  activeReminder,
-  demoScenario,
-  demoScenarioSummary,
-  stats,
-  selectUploadMethod,
-  continueWithSampleDocument,
-  confirmMedicine,
-  editMedicine,
-  removeMedicine,
-  generateSchedule,
-  resetReviewMedicines,
-  updateDoseStatus,
-  openReminder,
-  closeReminder,
-  replayReminderVoice,
-  remindAgain,
-  respondToReminder,
-  applyDemoScenario,
-  resetDemoState,
-}: AppNavigatorProps) {
+const tabIcons: Record<keyof MainTabParamList, keyof typeof Feather.glyphMap> = {
+  HomeTab: 'home',
+  ScheduleTab: 'calendar',
+  UploadTab: 'upload',
+  CaregiverTab: 'users',
+};
+
+function MainTabNavigator(props: SharedNavigatorProps) {
+  return (
+    <Tab.Navigator
+      initialRouteName="HomeTab"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        sceneStyle: { backgroundColor: theme.colors.background },
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textSecondary,
+        tabBarHideOnKeyboard: true,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '700',
+          paddingBottom: 2,
+        },
+        tabBarStyle: {
+          backgroundColor: theme.colors.surface,
+          borderTopColor: theme.colors.border,
+          height: 72,
+          paddingTop: 8,
+          paddingBottom: 8,
+        },
+        tabBarIcon: ({ color, size }) => (
+          <Feather color={color} name={tabIcons[route.name]} size={size} />
+        ),
+      })}
+    >
+      <Tab.Screen name="HomeTab" options={{ title: 'Home', tabBarLabel: 'Home' }}>
+        {(screenProps) => (
+          <HomeDashboardScreen
+            {...screenProps}
+            activityHistory={props.activityHistory}
+            applyDemoScenario={props.applyDemoScenario}
+            caregiverAlert={props.caregiverAlert}
+            caregiverAlertHistory={props.caregiverAlertHistory}
+            demoScenario={props.demoScenario}
+            demoScenarioSummary={props.demoScenarioSummary}
+            language={props.language}
+            nextReminder={props.nextReminder}
+            openReminder={props.openReminder}
+            resetDemoState={props.resetDemoState}
+            scheduleMedicines={props.scheduleMedicines}
+            setLanguage={props.setLanguage}
+            stats={props.stats}
+            t={props.t}
+          />
+        )}
+      </Tab.Screen>
+      <Tab.Screen name="ScheduleTab" options={{ title: 'Schedule', tabBarLabel: 'Schedule' }}>
+        {(screenProps) => (
+          <MedicationScheduleScreen
+            {...screenProps}
+            caregiverAlert={props.caregiverAlert}
+            language={props.language}
+            openReminder={props.openReminder}
+            scheduleMedicines={props.scheduleMedicines}
+            setLanguage={props.setLanguage}
+            stats={props.stats}
+            t={props.t}
+            updateDoseStatus={props.updateDoseStatus}
+          />
+        )}
+      </Tab.Screen>
+      <Tab.Screen name="UploadTab" options={{ title: 'Upload', tabBarLabel: 'Upload' }}>
+        {(screenProps) => (
+          <UploadDocumentScreen
+            {...screenProps}
+            continueWithSampleDocument={props.continueWithSampleDocument}
+            language={props.language}
+            selectedUploadMethod={props.selectedUploadMethod}
+            selectUploadMethod={props.selectUploadMethod}
+            setLanguage={props.setLanguage}
+            t={props.t}
+          />
+        )}
+      </Tab.Screen>
+      <Tab.Screen name="CaregiverTab" options={{ title: 'Caregiver', tabBarLabel: 'Caregiver' }}>
+        {(screenProps) => (
+          <CaregiverOverviewScreen
+            {...screenProps}
+            activityHistory={props.activityHistory}
+            caregiverAlert={props.caregiverAlert}
+            caregiverAlertHistory={props.caregiverAlertHistory}
+            language={props.language}
+            nextReminder={props.nextReminder}
+            scheduleMedicines={props.scheduleMedicines}
+            setLanguage={props.setLanguage}
+            stats={props.stats}
+            t={props.t}
+          />
+        )}
+      </Tab.Screen>
+    </Tab.Navigator>
+  );
+}
+
+export function AppNavigator(props: SharedNavigatorProps) {
   return (
     <Stack.Navigator
       initialRouteName="Welcome"
@@ -99,130 +176,68 @@ export function AppNavigator({
       }}
     >
       <Stack.Screen name="Welcome">
-        {(props) => (
+        {(screenProps) => (
           <WelcomeScreen
-            {...props}
-            applyDemoScenario={applyDemoScenario}
-            language={language}
-            setLanguage={setLanguage}
-            t={t}
+            {...screenProps}
+            applyDemoScenario={props.applyDemoScenario}
+            language={props.language}
+            setLanguage={props.setLanguage}
+            t={props.t}
           />
         )}
       </Stack.Screen>
       <Stack.Screen name="LanguageSelection">
-        {(props) => (
+        {(screenProps) => (
           <LanguageSelectionScreen
-            {...props}
-            language={language}
-            setLanguage={setLanguage}
-            t={t}
+            {...screenProps}
+            language={props.language}
+            setLanguage={props.setLanguage}
+            t={props.t}
           />
         )}
       </Stack.Screen>
-      <Stack.Screen name="Home">
-        {(props) => (
-          <HomeDashboardScreen
-            {...props}
-            activityHistory={activityHistory}
-            applyDemoScenario={applyDemoScenario}
-            caregiverAlert={caregiverAlert}
-            caregiverAlertHistory={caregiverAlertHistory}
-            demoScenario={demoScenario}
-            demoScenarioSummary={demoScenarioSummary}
-            language={language}
-            nextReminder={nextReminder}
-            openReminder={openReminder}
-            resetDemoState={resetDemoState}
-            scheduleMedicines={scheduleMedicines}
-            setLanguage={setLanguage}
-            stats={stats}
-            t={t}
-          />
-        )}
-      </Stack.Screen>
-      <Stack.Screen name="UploadDocument">
-        {(props) => (
-          <UploadDocumentScreen
-            {...props}
-            continueWithSampleDocument={continueWithSampleDocument}
-            language={language}
-            selectedUploadMethod={selectedUploadMethod}
-            selectUploadMethod={selectUploadMethod}
-            setLanguage={setLanguage}
-            t={t}
-          />
-        )}
+      <Stack.Screen name="AppTabs">
+        {() => <MainTabNavigator {...props} />}
       </Stack.Screen>
       <Stack.Screen name="ExtractionPreview">
-        {(props) => (
+        {(screenProps) => (
           <ExtractionPreviewScreen
-            {...props}
-            language={language}
-            selectedUploadMethod={selectedUploadMethod}
-            setLanguage={setLanguage}
-            t={t}
+            {...screenProps}
+            language={props.language}
+            selectedUploadMethod={props.selectedUploadMethod}
+            setLanguage={props.setLanguage}
+            t={props.t}
           />
         )}
       </Stack.Screen>
       <Stack.Screen name="ReviewMedicines">
-        {(props) => (
+        {(screenProps) => (
           <ReviewMedicinesScreen
-            {...props}
-            confirmMedicine={confirmMedicine}
-            editMedicine={editMedicine}
-            generateSchedule={generateSchedule}
-            language={language}
-            removeMedicine={removeMedicine}
-            resetReviewMedicines={resetReviewMedicines}
-            reviewMedicines={reviewMedicines}
-            setLanguage={setLanguage}
-            t={t}
+            {...screenProps}
+            confirmMedicine={props.confirmMedicine}
+            editMedicine={props.editMedicine}
+            generateSchedule={props.generateSchedule}
+            language={props.language}
+            removeMedicine={props.removeMedicine}
+            resetReviewMedicines={props.resetReviewMedicines}
+            reviewMedicines={props.reviewMedicines}
+            setLanguage={props.setLanguage}
+            t={props.t}
           />
         )}
       </Stack.Screen>
       <Stack.Screen name="ReminderDetail">
-        {(props) => (
+        {(screenProps) => (
           <ReminderDetailScreen
-            {...props}
-            activeReminder={activeReminder}
-            closeReminder={closeReminder}
-            language={language}
-            remindAgain={remindAgain}
-            replayReminderVoice={replayReminderVoice}
-            respondToReminder={respondToReminder}
-            setLanguage={setLanguage}
-            t={t}
-          />
-        )}
-      </Stack.Screen>
-      <Stack.Screen name="MedicationSchedule">
-        {(props) => (
-          <MedicationScheduleScreen
-            {...props}
-            caregiverAlert={caregiverAlert}
-            language={language}
-            openReminder={openReminder}
-            scheduleMedicines={scheduleMedicines}
-            setLanguage={setLanguage}
-            stats={stats}
-            t={t}
-            updateDoseStatus={updateDoseStatus}
-          />
-        )}
-      </Stack.Screen>
-      <Stack.Screen name="CaregiverOverview">
-        {(props) => (
-          <CaregiverOverviewScreen
-            {...props}
-            activityHistory={activityHistory}
-            caregiverAlert={caregiverAlert}
-            caregiverAlertHistory={caregiverAlertHistory}
-            language={language}
-            nextReminder={nextReminder}
-            scheduleMedicines={scheduleMedicines}
-            setLanguage={setLanguage}
-            stats={stats}
-            t={t}
+            {...screenProps}
+            activeReminder={props.activeReminder}
+            closeReminder={props.closeReminder}
+            language={props.language}
+            remindAgain={props.remindAgain}
+            replayReminderVoice={props.replayReminderVoice}
+            respondToReminder={props.respondToReminder}
+            setLanguage={props.setLanguage}
+            t={props.t}
           />
         )}
       </Stack.Screen>

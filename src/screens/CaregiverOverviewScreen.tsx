@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { ActivityTimelineItem } from '../components/ActivityTimelineItem';
@@ -17,9 +17,9 @@ import type {
   CaregiverAlertState,
   MedicationItem,
 } from '../types/medication';
-import type { RootStackParamList } from '../types/navigation';
+import type { AppTabScreenProps } from '../types/navigation';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'CaregiverOverview'> & {
+type Props = AppTabScreenProps<'CaregiverTab'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
@@ -43,7 +43,6 @@ export function CaregiverOverviewScreen({
   setLanguage,
   nextReminder,
   caregiverAlert,
-  caregiverAlertHistory,
   activityHistory,
   scheduleMedicines,
   stats,
@@ -52,164 +51,126 @@ export function CaregiverOverviewScreen({
     ? caregiverAlert.level === 'alert'
       ? 'Escalated'
       : 'Needs attention'
-    : stats.adherencePercent >= 75 && stats.missed === 0
+    : stats.pending === 0 && stats.missed === 0 && stats.unconfirmed === 0
       ? 'Stable'
-      : 'Needs attention';
+      : 'Stable';
 
   const summarySentence = caregiverAlert.active
     ? caregiverAlert.reason
-    : stats.pending === 0 && stats.unconfirmed === 0 && stats.missed === 0
+    : stats.pending === 0 && stats.missed === 0 && stats.unconfirmed === 0
       ? 'All recorded doses are on track today.'
-      : `${stats.missed} missed and ${stats.unconfirmed} unconfirmed doses may need follow-up today.`;
+      : `${stats.missed} missed and ${stats.unconfirmed} unconfirmed doses may need follow-up.`;
 
   const followUpItems = scheduleMedicines.filter(
     (item) => item.status === 'Pending' || item.status === 'Unconfirmed',
   );
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        title="Caregiver overview"
-        subtitle="A quick daily view to understand whether the patient is stable or whether support is needed."
-        rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-        helper={
-          <StatusBadge
-            icon={overallStatus === 'Stable' ? 'shield' : 'bell'}
-            label={overallStatus}
-            variant={overallStatus === 'Stable' ? 'accent' : 'secondary'}
-          />
-        }
-      />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <ScreenHeader
+          eyebrow="Caregiver"
+          title="Patient status"
+          subtitle="A quick view of whether follow-up is needed today."
+          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+        />
 
-      <View style={styles.heroCard}>
-        <View style={styles.heroTop}>
-          <View style={styles.avatarWrap}>
-            <Feather color={theme.colors.primary} name="user" size={24} />
+        <View style={styles.heroCard}>
+          <View style={styles.heroHeader}>
+            <View style={styles.avatarWrap}>
+              <Feather color={theme.colors.primary} name="user" size={20} />
+            </View>
+            <StatusBadge
+              icon={overallStatus === 'Escalated' ? 'alert-circle' : 'shield'}
+              label={overallStatus}
+              variant={overallStatus === 'Escalated' ? 'secondary' : 'accent'}
+            />
           </View>
-          <StatusBadge
-            icon={overallStatus === 'Escalated' ? 'alert-circle' : overallStatus === 'Stable' ? 'check-circle' : 'help-circle'}
-            label={overallStatus}
-            variant={overallStatus === 'Stable' ? 'accent' : 'secondary'}
-          />
+          <Text style={styles.patientName}>Lakshmi Devi</Text>
+          <Text style={styles.patientMeta}>{`${stats.adherencePercent}% adherence today`}</Text>
+          <Text style={styles.heroBody}>{summarySentence}</Text>
         </View>
-        <Text style={styles.patientName}>Lakshmi Devi</Text>
-        <Text style={styles.patientMeta}>{`${stats.adherencePercent}% adherence today`}</Text>
-        <Text style={styles.heroBody}>{summarySentence}</Text>
-      </View>
 
-      {stats.pending === 0 && stats.unconfirmed === 0 && stats.missed === 0 ? (
-        <EmptyStateCard detail="All recorded doses are on track today." icon="shield" title="Patient stable today" />
-      ) : null}
+        {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}
 
-      {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}
+        {!caregiverAlert.active && stats.pending === 0 && stats.missed === 0 && stats.unconfirmed === 0 ? (
+          <EmptyStateCard detail="All recorded doses are on track today." icon="shield" title="Patient stable today" />
+        ) : null}
 
-      <View style={styles.actionCard}>
-        <Text style={styles.sectionTitle}>Suggested caregiver actions</Text>
-        <View style={styles.actionList}>
-          <View style={styles.actionItem}>
-            <StatusBadge icon="phone" label="Call patient" variant="accent" />
-            <Text style={styles.actionText}>Check whether the current or missed dose was actually taken.</Text>
+        <View style={styles.metricRow}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Taken</Text>
+            <Text style={styles.metricValue}>{stats.taken}</Text>
           </View>
-          <View style={styles.actionItem}>
-            <StatusBadge icon="clock" label="Check next dose" variant="accent" />
-            <Text style={styles.actionText}>Watch the upcoming medicine time and confirm the routine.</Text>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Missed</Text>
+            <Text style={styles.metricValue}>{stats.missed}</Text>
           </View>
-          <View style={styles.actionItem}>
-            <StatusBadge icon="book-open" label="Review routine" variant="accent" />
-            <Text style={styles.actionText}>Reinforce before-food and after-food instructions if there is confusion.</Text>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Unconfirmed</Text>
+            <Text style={styles.metricValue}>{stats.unconfirmed}</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Pending</Text>
+            <Text style={styles.metricValue}>{stats.pending}</Text>
           </View>
         </View>
-      </View>
 
-      <View style={styles.gridSection}>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Total doses</Text>
-          <Text style={styles.metricValue}>{stats.total}</Text>
-        </View>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Taken</Text>
-          <Text style={styles.metricValue}>{stats.taken}</Text>
-        </View>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Missed</Text>
-          <Text style={styles.metricValue}>{stats.missed}</Text>
-        </View>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Unconfirmed</Text>
-          <Text style={styles.metricValue}>{stats.unconfirmed}</Text>
-        </View>
-        <View style={styles.metricCardWide}>
-          <Text style={styles.metricLabel}>Pending</Text>
-          <Text style={styles.metricValue}>{stats.pending}</Text>
-        </View>
-      </View>
+        <DailyProgressCard missed={stats.missed} taken={stats.taken} total={stats.total} unconfirmed={stats.unconfirmed} />
 
-      <DailyProgressCard
-        missed={stats.missed}
-        taken={stats.taken}
-        total={stats.total}
-        unconfirmed={stats.unconfirmed}
-      />
-
-      <View style={styles.followUpSection}>
-        <Text style={styles.sectionTitle}>Patient follow-up</Text>
-        <ReminderStatusCard nextReminder={nextReminder} />
-        <View style={styles.followUpCard}>
-          <Text style={styles.followUpTitle}>Medicines needing attention</Text>
-          {followUpItems.length === 0 ? (
-            <Text style={styles.followUpBody}>All recorded doses are on track today.</Text>
-          ) : (
-            followUpItems.slice(0, 3).map((item) => (
-              <View key={item.id} style={styles.followUpItem}>
-                <View style={styles.followUpCopy}>
-                  <Text style={styles.followUpName}>{item.name}</Text>
-                  <Text style={styles.followUpMeta}>{`${item.timing} · ${item.foodTiming}`}</Text>
+        <View style={styles.followUpSection}>
+          <Text style={styles.sectionTitle}>Follow-up</Text>
+          <ReminderStatusCard nextReminder={nextReminder} />
+          <View style={styles.followUpCard}>
+            <Text style={styles.followUpTitle}>Medicines to watch</Text>
+            {followUpItems.length === 0 ? (
+              <Text style={styles.followUpBody}>No pending or unconfirmed medicines right now.</Text>
+            ) : (
+              followUpItems.slice(0, 3).map((item) => (
+                <View key={item.id} style={styles.followUpItem}>
+                  <View style={styles.followUpCopy}>
+                    <Text style={styles.followUpName}>{item.name}</Text>
+                    <Text style={styles.followUpMeta}>{`${item.timing} · ${item.foodTiming}`}</Text>
+                  </View>
+                  <StatusBadge
+                    icon={item.status === 'Pending' ? 'clock' : 'help-circle'}
+                    label={item.status}
+                    variant={item.status === 'Pending' ? 'primary' : 'secondary'}
+                  />
                 </View>
-                <StatusBadge
-                  icon={item.status === 'Pending' ? 'clock' : 'help-circle'}
-                  label={item.status}
-                  variant={item.status === 'Pending' ? 'primary' : 'secondary'}
-                />
-              </View>
-            ))
-          )}
-        </View>
-      </View>
-
-      <View style={styles.timelineSection}>
-        <Text style={styles.sectionTitle}>Recent activity</Text>
-        <View style={styles.timelineCard}>
-          {activityHistory.length === 0 ? (
-            <EmptyStateCard detail="No activity has been recorded yet in this session." title="No recent activity" />
-          ) : (
-            activityHistory.slice(0, 5).map((item) => <ActivityTimelineItem key={item.id} item={item} />)
-          )}
-        </View>
-      </View>
-
-      {caregiverAlertHistory.length > 0 ? (
-        <View style={styles.timelineSection}>
-          <Text style={styles.sectionTitle}>Alert history</Text>
-          <View style={styles.timelineCard}>
-            {caregiverAlertHistory.map((item) => (
-              <ActivityTimelineItem key={item.id} item={item} />
-            ))}
+              ))
+            )}
           </View>
         </View>
-      ) : null}
-    </ScrollView>
+
+        <View style={styles.activitySection}>
+          <Text style={styles.sectionTitle}>Recent activity</Text>
+          <View style={styles.timelineCard}>
+            {activityHistory.length === 0 ? (
+              <EmptyStateCard detail="No reminder or adherence activity has been recorded yet." title="No recent activity" />
+            ) : (
+              activityHistory.slice(0, 3).map((item) => <ActivityTimelineItem key={item.id} item={item} />)
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
-    gap: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    paddingTop: 64,
+    gap: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
   },
   heroCard: {
@@ -217,87 +178,57 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.xl,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.lg,
     ...theme.shadows.card,
   },
-  heroTop: {
+  heroHeader: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: theme.spacing.md,
+    justifyContent: 'space-between',
   },
   avatarWrap: {
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.md,
-    height: 52,
+    height: 42,
     justifyContent: 'center',
-    width: 52,
+    width: 42,
   },
   patientName: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.title,
+    fontSize: theme.typography.heading,
     fontWeight: '800',
-    lineHeight: 32,
+    lineHeight: 26,
   },
   patientMeta: {
     color: theme.colors.secondary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
   },
   heroBody: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 24,
+    lineHeight: 22,
   },
-  actionCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
-    ...theme.shadows.soft,
-  },
-  sectionTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
-    fontWeight: '800',
-    lineHeight: 28,
-  },
-  actionList: {
-    gap: theme.spacing.sm,
-  },
-  actionItem: {
-    gap: theme.spacing.xs,
-  },
-  actionText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
-  },
-  gridSection: {
+  metricRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.md,
   },
   metricCard: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
+    borderWidth: 1,
     gap: theme.spacing.xs,
     minWidth: '47%',
     padding: theme.spacing.lg,
-  },
-  metricCardWide: {
-    backgroundColor: theme.colors.surfaceMuted,
-    borderRadius: theme.radius.lg,
-    gap: theme.spacing.xs,
-    padding: theme.spacing.lg,
-    width: '100%',
+    ...theme.shadows.soft,
   },
   metricLabel: {
-    color: theme.colors.secondary,
+    color: theme.colors.textSecondary,
     fontSize: theme.typography.caption,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -307,10 +238,16 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontSize: theme.typography.display,
     fontWeight: '800',
-    lineHeight: 36,
+    lineHeight: 34,
   },
   followUpSection: {
     gap: theme.spacing.md,
+  },
+  sectionTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.heading,
+    fontWeight: '800',
+    lineHeight: 26,
   },
   followUpCard: {
     backgroundColor: theme.colors.surface,
@@ -323,13 +260,14 @@ const styles = StyleSheet.create({
   },
   followUpTitle: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
+    lineHeight: 22,
   },
   followUpBody: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   followUpItem: {
     alignItems: 'center',
@@ -355,7 +293,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.bodySmall,
     lineHeight: 20,
   },
-  timelineSection: {
+  activitySection: {
     gap: theme.spacing.md,
   },
   timelineCard: {

@@ -1,32 +1,30 @@
 import { Feather } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { ActiveReminderCard } from '../components/ActiveReminderCard';
-import { ActivityTimelineItem } from '../components/ActivityTimelineItem';
 import { AdherenceSummaryCard } from '../components/AdherenceSummaryCard';
 import { CaregiverAlertCard } from '../components/CaregiverAlertCard';
 import { DemoScenarioCard } from '../components/DemoScenarioCard';
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { LanguageToggle } from '../components/LanguageToggle';
-import { ReminderStatusCard } from '../components/ReminderStatusCard';
 import { ScenarioBanner } from '../components/ScenarioBanner';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SecondaryButton } from '../components/SecondaryButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { SuccessStateCard } from '../components/SuccessStateCard';
 import { theme } from '../theme';
+import type { DemoScenarioKey } from '../types/intake';
 import type {
   AdherenceActivityItem,
   CaregiverAlertState,
   MedicationItem,
 } from '../types/medication';
-import type { DemoScenarioKey } from '../types/intake';
-import type { RootStackParamList } from '../types/navigation';
+import type { AppTabScreenProps } from '../types/navigation';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'> & {
+type Props = AppTabScreenProps<'HomeTab'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
@@ -50,20 +48,11 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'> & {
   };
 };
 
-type QuickRoute = 'MedicationSchedule' | 'UploadDocument' | 'CaregiverOverview';
-
-type QuickCard = {
-  title: string;
-  detail: string;
-  icon: 'calendar' | 'upload' | 'users';
-  route: QuickRoute;
-};
-
 const scenarios: Array<{ key: DemoScenarioKey; title: string; detail: string }> = [
-  { key: 'smooth', title: 'Smooth Adherence', detail: 'Most doses taken and no caregiver escalation.' },
-  { key: 'missed', title: 'Missed Dose Scenario', detail: 'Missed doses create visible caregiver concern.' },
-  { key: 'no-response', title: 'No Response Scenario', detail: 'Reminder goes unanswered and doses become unconfirmed.' },
-  { key: 'escalated', title: 'Escalated Caregiver Scenario', detail: 'Multiple issues make intervention clearly visible.' },
+  { key: 'smooth', title: 'Smooth Adherence', detail: 'Most doses taken.' },
+  { key: 'missed', title: 'Missed Doses', detail: 'Caregiver needs attention.' },
+  { key: 'no-response', title: 'No Response', detail: 'Reminder becomes unconfirmed.' },
+  { key: 'escalated', title: 'Escalated', detail: 'Concern is clearly visible.' },
 ];
 
 export function HomeDashboardScreen({
@@ -72,8 +61,6 @@ export function HomeDashboardScreen({
   setLanguage,
   nextReminder,
   caregiverAlert,
-  caregiverAlertHistory,
-  activityHistory,
   openReminder,
   applyDemoScenario,
   resetDemoState,
@@ -82,216 +69,218 @@ export function HomeDashboardScreen({
   stats,
 }: Props) {
   const [isLaunchingReminder, setIsLaunchingReminder] = useState(false);
-
-  const quickCards: QuickCard[] = [
-    {
-      title: 'Upload prescription',
-      detail: 'Add a discharge sheet or prescription photo',
-      icon: 'upload',
-      route: 'UploadDocument',
-    },
-    {
-      title: 'View today\'s schedule',
-      detail: 'Update medicine status one dose at a time',
-      icon: 'calendar',
-      route: 'MedicationSchedule',
-    },
-    {
-      title: 'Caregiver status',
-      detail: 'Check whether a follow-up alert is active',
-      icon: 'users',
-      route: 'CaregiverOverview',
-    },
-  ];
-
   const allHandled = stats.pending === 0 && stats.unconfirmed === 0;
 
   const launchReminder = () => {
     if (!nextReminder) {
       return;
     }
+
     setIsLaunchingReminder(true);
     openReminder();
     setTimeout(() => {
       setIsLaunchingReminder(false);
       navigation.navigate('ReminderDetail');
-    }, 450);
+    }, 350);
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        eyebrow="MedBridge"
-        title="Good morning, Lakshmi"
-        subtitle="Your dashboard updates as each medicine is marked taken, missed, unconfirmed, or handled from a reminder."
-        rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-        helper={
-          <StatusBadge
-            icon={caregiverAlert.active ? 'bell' : 'shield'}
-            label={caregiverAlert.active ? 'Caregiver follow-up active' : 'No active escalation'}
-            variant={caregiverAlert.active ? 'secondary' : 'accent'}
-          />
-        }
-      />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <ScreenHeader
+          eyebrow="Home"
+          title="Hello, Lakshmi"
+          subtitle="Your next medicine and today’s progress are shown here."
+          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+        />
 
-      <ScenarioBanner
-        active={Boolean(demoScenario)}
-        detail={demoScenarioSummary}
-        title={demoScenario ? 'Guided demo mode is active' : 'Guided demo mode is ready'}
-      />
+        <ScenarioBanner
+          active={Boolean(demoScenario)}
+          detail={demoScenarioSummary}
+          title={demoScenario ? 'Demo scenario active' : 'Demo mode ready'}
+        />
 
-      <View style={styles.heroCard}>
-        <View style={styles.heroTop}>
-          <View style={styles.heroIcon}>
-            <Feather color={theme.colors.primary} name="sunrise" size={22} />
+        {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}
+
+        {isLaunchingReminder ? (
+          <SuccessStateCard title="Opening reminder" detail="Preparing the simple patient reminder now." />
+        ) : (
+          <ActiveReminderCard onStart={launchReminder} reminder={nextReminder} />
+        )}
+
+        <View style={styles.summaryGrid}>
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Today's medicines</Text>
+              <Feather color={theme.colors.primary} name="calendar" size={18} />
+            </View>
+            <Text style={styles.summaryValue}>{stats.total}</Text>
+            <Text style={styles.summaryHelper}>
+              {allHandled ? 'All medicines handled for today.' : `${stats.pending} doses still need attention.`}
+            </Text>
           </View>
-          <StatusBadge icon="clock" label={`${stats.pending} pending now`} variant="primary" />
+
+          <AdherenceSummaryCard
+            adherencePercent={stats.adherencePercent}
+            missed={stats.missed}
+            pending={stats.pending}
+            taken={stats.taken}
+            total={stats.total}
+          />
         </View>
-        <Text style={styles.heroTitle}>Today&apos;s medicines</Text>
-        <Text style={styles.heroBody}>
-          {allHandled
-            ? 'All scheduled medicines are handled for today.'
-            : `${stats.taken} taken, ${stats.unconfirmed} unconfirmed, and ${stats.missed} missed. Reminder actions update the plan immediately.`}
-        </Text>
-      </View>
 
-      <View style={styles.demoSection}>
-        <View style={styles.demoHeader}>
-          <Text style={styles.sectionTitle}>Guided demo mode</Text>
-          <SecondaryButton fullWidth={false} icon="rotate-ccw" label="Reset demo" onPress={resetDemoState} />
-        </View>
-        <View style={styles.demoList}>
-          {scenarios.map((scenario) => (
-            <DemoScenarioCard
-              key={scenario.key}
-              detail={scenario.detail}
-              onPress={applyDemoScenario}
-              scenario={scenario.key}
-              selected={demoScenario === scenario.key}
-              title={scenario.title}
-            />
-          ))}
-        </View>
-      </View>
+        {allHandled ? (
+          <EmptyStateCard
+            detail="All scheduled medicines are handled for today. The patient routine looks stable."
+            icon="check-circle"
+            title="Day complete"
+          />
+        ) : null}
 
-      {isLaunchingReminder ? (
-        <SuccessStateCard title="Opening reminder" detail="Preparing the low-literacy reminder interaction for the next dose." />
-      ) : (
-        <ActiveReminderCard onStart={launchReminder} reminder={nextReminder} />
-      )}
-
-      <View style={styles.dualRow}>
-        <ReminderStatusCard nextReminder={nextReminder} />
-        <AdherenceSummaryCard
-          adherencePercent={stats.adherencePercent}
-          missed={stats.missed}
-          pending={stats.pending}
-          taken={stats.taken}
-          total={stats.total}
-        />
-      </View>
-
-      {allHandled ? (
-        <EmptyStateCard
-          detail="All reminders completed for today. The patient routine looks stable and calm."
-          icon="check-circle"
-          title="Day complete"
-        />
-      ) : null}
-
-      {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}
-
-      <View style={styles.quickSection}>
-        <Text style={styles.sectionTitle}>Quick actions</Text>
-        <View style={styles.quickList}>
-          {quickCards.map((card) => (
+        <View style={styles.actionsSection}>
+          <Text style={styles.sectionTitle}>Quick actions</Text>
+          <View style={styles.actionRow}>
             <Pressable
-              key={card.title}
               accessibilityRole="button"
-              onPress={() => navigation.navigate(card.route)}
-              style={({ pressed }) => [styles.quickCard, pressed && styles.quickCardPressed]}
+              onPress={() => navigation.navigate('ScheduleTab')}
+              style={({ pressed }) => [styles.actionCard, pressed && styles.actionPressed]}
             >
-              <View style={styles.quickIcon}>
-                <Feather color={theme.colors.secondary} name={card.icon} size={20} />
+              <View style={styles.actionIcon}>
+                <Feather color={theme.colors.secondary} name="calendar" size={18} />
               </View>
-              <View style={styles.quickCopy}>
-                <Text style={styles.quickTitle}>{card.title}</Text>
-                <Text style={styles.quickDetail}>{card.detail}</Text>
-              </View>
+              <Text style={styles.actionTitle}>Open schedule</Text>
+              <Text style={styles.actionDetail}>Update doses</Text>
             </Pressable>
-          ))}
-        </View>
-      </View>
 
-      <View style={styles.activitySection}>
-        <Text style={styles.sectionTitle}>Recent reminder actions</Text>
-        <View style={styles.timelineCard}>
-          {activityHistory.length === 0 ? (
-            <EmptyStateCard detail="No reminder activity yet. Start a reminder demo to begin." title="No activity yet" />
-          ) : (
-            activityHistory.slice(0, 4).map((item) => <ActivityTimelineItem key={item.id} item={item} />)
-          )}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('UploadTab')}
+              style={({ pressed }) => [styles.actionCard, pressed && styles.actionPressed]}
+            >
+              <View style={styles.actionIcon}>
+                <Feather color={theme.colors.secondary} name="upload" size={18} />
+              </View>
+              <Text style={styles.actionTitle}>Upload document</Text>
+              <Text style={styles.actionDetail}>Review medicines</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
 
-      {caregiverAlertHistory.length > 0 ? (
-        <View style={styles.activitySection}>
-          <Text style={styles.sectionTitle}>Caregiver alert history</Text>
-          <View style={styles.timelineCard}>
-            {caregiverAlertHistory.map((item) => (
-              <ActivityTimelineItem key={item.id} item={item} />
+        <View style={styles.demoSection}>
+          <View style={styles.demoHeader}>
+            <Text style={styles.sectionTitle}>Demo mode</Text>
+            <SecondaryButton fullWidth={false} icon="rotate-ccw" label="Reset" onPress={resetDemoState} />
+          </View>
+          <View style={styles.demoGrid}>
+            {scenarios.map((scenario) => (
+              <DemoScenarioCard
+                key={scenario.key}
+                detail={scenario.detail}
+                onPress={applyDemoScenario}
+                scenario={scenario.key}
+                selected={demoScenario === scenario.key}
+                title={scenario.title}
+              />
             ))}
           </View>
         </View>
-      ) : null}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
-    gap: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    paddingTop: 64,
+    gap: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
   },
-  heroCard: {
+  summaryGrid: {
+    gap: theme.spacing.md,
+  },
+  summaryCard: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.xl,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.lg,
     ...theme.shadows.card,
   },
-  heroTop: {
+  summaryRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: theme.spacing.md,
     justifyContent: 'space-between',
   },
-  heroIcon: {
+  summaryLabel: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.bodySmall,
+    fontWeight: '700',
+  },
+  summaryValue: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.display,
+    fontWeight: '800',
+    lineHeight: 36,
+  },
+  summaryHelper: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.body,
+    lineHeight: 22,
+  },
+  actionsSection: {
+    gap: theme.spacing.md,
+  },
+  sectionTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.heading,
+    fontWeight: '800',
+    lineHeight: 26,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  actionCard: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    flex: 1,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.lg,
+    ...theme.shadows.soft,
+  },
+  actionPressed: {
+    backgroundColor: theme.colors.surfaceMuted,
+  },
+  actionIcon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.md,
-    height: 50,
+    height: 40,
     justifyContent: 'center',
-    width: 50,
+    width: 40,
   },
-  heroTitle: {
+  actionTitle: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.title,
+    fontSize: theme.typography.body,
     fontWeight: '800',
-    lineHeight: 32,
+    lineHeight: 22,
   },
-  heroBody: {
+  actionDetail: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodyLarge,
-    lineHeight: 28,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
   demoSection: {
     gap: theme.spacing.md,
@@ -302,71 +291,7 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
     justifyContent: 'space-between',
   },
-  demoList: {
-    gap: theme.spacing.md,
-  },
-  dualRow: {
-    gap: theme.spacing.md,
-  },
-  quickSection: {
-    gap: theme.spacing.md,
-  },
-  sectionTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
-    fontWeight: '800',
-    lineHeight: 28,
-  },
-  quickList: {
-    gap: theme.spacing.md,
-  },
-  quickCard: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
-    ...theme.shadows.soft,
-  },
-  quickCardPressed: {
-    backgroundColor: theme.colors.surfaceMuted,
-  },
-  quickIcon: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.md,
-    height: 50,
-    justifyContent: 'center',
-    width: 50,
-  },
-  quickCopy: {
-    flex: 1,
-    gap: 4,
-  },
-  quickTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
-    fontWeight: '800',
-    lineHeight: 24,
-  },
-  quickDetail: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
-  },
-  activitySection: {
-    gap: theme.spacing.md,
-  },
-  timelineCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
-    ...theme.shadows.soft,
+  demoGrid: {
+    gap: theme.spacing.sm,
   },
 });

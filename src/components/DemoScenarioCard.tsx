@@ -1,32 +1,23 @@
-import { Feather } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../theme';
-import type { DemoScenarioKey } from '../types/intake';
+import { PrimaryButton } from './PrimaryButton';
 
 type DemoScenarioCardProps = {
   title: string;
   detail: string;
-  scenario: DemoScenarioKey;
+  scenario: 'smooth' | 'missed' | 'no-response' | 'escalated';
   selected?: boolean;
-  onPress?: (scenario: DemoScenarioKey) => void;
+  onPress?: (scenario: 'smooth' | 'missed' | 'no-response' | 'escalated') => void;
 };
 
 export function DemoScenarioCard({ title, detail, scenario, selected = false, onPress }: DemoScenarioCardProps) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => onPress?.(scenario)}
-      style={({ pressed }) => [styles.card, selected && styles.cardSelected, pressed && styles.pressed]}
-    >
-      <View style={styles.row}>
-        <View style={styles.copy}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.detail}>{detail}</Text>
-        </View>
-        {selected ? <Feather color={theme.colors.primary} name="check-circle" size={20} /> : null}
-      </View>
-    </Pressable>
+    <View style={[styles.card, selected && styles.cardSelected]}>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.detail}>{detail}</Text>
+      <PrimaryButton fullWidth={false} label={selected ? 'Active' : 'Use scenario'} onPress={() => onPress?.(scenario)} />
+    </View>
   );
 }
 
@@ -36,34 +27,23 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    padding: theme.spacing.lg,
+    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
     ...theme.shadows.soft,
   },
   cardSelected: {
     backgroundColor: theme.colors.accent,
     borderColor: theme.colors.primary,
   },
-  pressed: {
-    opacity: 0.96,
-  },
-  row: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-  },
-  copy: {
-    flex: 1,
-    gap: 4,
-  },
   title: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
-    lineHeight: 24,
+    lineHeight: 22,
   },
   detail: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
 });

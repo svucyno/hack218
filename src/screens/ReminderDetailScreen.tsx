@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { EmptyStateCard } from '../components/EmptyStateCard';
@@ -15,9 +15,9 @@ import { SuccessStateCard } from '../components/SuccessStateCard';
 import { VoicePromptIndicator } from '../components/VoicePromptIndicator';
 import { theme } from '../theme';
 import type { MedicationItem } from '../types/medication';
-import type { RootStackParamList } from '../types/navigation';
+import type { RootStackScreenProps } from '../types/navigation';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ReminderDetail'> & {
+type Props = RootStackScreenProps<'ReminderDetail'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
@@ -43,111 +43,109 @@ export function ReminderDetailScreen({
 
   if (!activeReminder) {
     return (
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader
-          title="Reminder"
-          subtitle="There is no active reminder right now."
-          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-        />
-        <EmptyStateCard
-          detail="All active doses have been handled for the moment."
-          icon="check-circle"
-          title="No current reminder"
-        />
-        <PrimaryButton icon="arrow-left" label="Back to dashboard" onPress={() => navigation.navigate('Home')} />
-      </ScrollView>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+          <ScreenHeader
+            eyebrow="Reminder"
+            title="No active reminder"
+            subtitle="There is no medicine reminder open right now."
+            rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+          />
+          <EmptyStateCard detail="All active doses have been handled for the moment." icon="check-circle" title="No current reminder" />
+          <PrimaryButton icon="arrow-left" label="Back to Home" onPress={() => navigation.navigate('AppTabs', { screen: 'HomeTab' })} />
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <ScreenHeader
-        eyebrow="Reminder"
-        title="Medicine time"
-        subtitle="Please choose the simplest action for this dose."
-        rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-        helper={<StatusBadge icon="volume-2" label={`${languageLabel} reminder ready`} variant="accent" />}
-      />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <ScreenHeader
+          eyebrow="Reminder"
+          title="Medicine time"
+          subtitle="Choose the clearest action for this dose."
+          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+          helper={<StatusBadge icon="volume-2" label={`${languageLabel} voice prompt`} variant="accent" />}
+        />
 
-      {feedback ? <SuccessStateCard detail={feedback} title="Reminder updated" /> : null}
+        {feedback ? <SuccessStateCard detail={feedback} title="Reminder updated" /> : null}
 
-      <View style={styles.heroCard}>
-        <View style={styles.heroIcon}>
-          <Feather color={theme.colors.primary} name="bell" size={26} />
+        <View style={styles.heroCard}>
+          <View style={styles.heroIcon}>
+            <Feather color={theme.colors.primary} name="bell" size={24} />
+          </View>
+          <Text style={styles.heroTitle}>{activeReminder.name}</Text>
+          <Text style={styles.heroDose}>{activeReminder.dosage}</Text>
+          <Text style={styles.heroTiming}>{activeReminder.timing}</Text>
+          <Text style={styles.heroFood}>{activeReminder.foodTiming}</Text>
         </View>
-        <Text style={styles.heroTitle}>{activeReminder.name}</Text>
-        <Text style={styles.heroDose}>{activeReminder.dosage}</Text>
-        <Text style={styles.heroTiming}>{activeReminder.timing}</Text>
-        <Text style={styles.heroFood}>{activeReminder.foodTiming}</Text>
-      </View>
 
-      <VoicePromptIndicator languageLabel={languageLabel} />
+        <VoicePromptIndicator languageLabel={languageLabel} />
 
-      <View style={styles.messageCard}>
-        <Text style={styles.messageTitle}>Simple reminder message</Text>
-        <Text style={styles.messageBody}>Medicine time. Please take your tablet now.</Text>
-        <Text style={styles.messageBodySecondary}>తెలుగు ప్లేస్‌హోల్డర్: మందు తీసుకునే సమయం.</Text>
-        <SecondaryButton
-          fullWidth={false}
-          icon="volume-2"
-          label="Play voice again"
-          onPress={() => {
-            replayReminderVoice();
-            setFeedback('Voice reminder replayed in the selected language.');
+        <View style={styles.messageCard}>
+          <Text style={styles.messageTitle}>Simple reminder</Text>
+          <Text style={styles.messageBody}>Medicine time. Please take your medicine now.</Text>
+          <Text style={styles.messageBodySecondary}>తెలుగు ప్లేస్‌హోల్డర్: మందు తీసుకునే సమయం.</Text>
+          <SecondaryButton
+            fullWidth={false}
+            icon="volume-2"
+            label="Play voice again"
+            onPress={() => {
+              replayReminderVoice();
+              setFeedback('Voice reminder replayed in the selected language.');
+            }}
+          />
+        </View>
+
+        <ReminderActionPanel
+          onMissed={() => {
+            setFeedback('Missed dose recorded. Caregiver attention may be needed.');
+            respondToReminder('Missed');
+            setTimeout(() => navigation.goBack(), 350);
+          }}
+          onNoResponse={() => {
+            setFeedback('No response recorded. Dose marked as unconfirmed.');
+            respondToReminder('Unconfirmed');
+            setTimeout(() => navigation.goBack(), 350);
+          }}
+          onRemindAgain={() => {
+            remindAgain();
+            setFeedback('Reminder will play again shortly.');
+          }}
+          onTaken={() => {
+            setFeedback('Dose recorded as taken.');
+            respondToReminder('Taken');
+            setTimeout(() => navigation.goBack(), 350);
           }}
         />
-      </View>
 
-      <ReminderActionPanel
-        onMissed={() => {
-          setFeedback('Missed dose recorded. Caregiver attention may be needed.');
-          respondToReminder('Missed');
-          setTimeout(() => navigation.goBack(), 350);
-        }}
-        onNoResponse={() => {
-          setFeedback('No response recorded. Dose marked as unconfirmed.');
-          respondToReminder('Unconfirmed');
-          setTimeout(() => navigation.goBack(), 350);
-        }}
-        onRemindAgain={() => {
-          remindAgain();
-          setFeedback('Reminder will play again shortly.');
-        }}
-        onTaken={() => {
-          setFeedback('Dose recorded as taken.');
-          respondToReminder('Taken');
-          setTimeout(() => navigation.goBack(), 350);
-        }}
-      />
-
-      <View style={styles.footerNote}>
-        <Text style={styles.footerTitle}>Low-literacy support</Text>
-        <Text style={styles.footerBody}>
-          This demo keeps the reminder calm and simple with large actions, limited text, and a voice cue indicator.
-        </Text>
-      </View>
-
-      <SecondaryButton
-        icon="x"
-        label="Close reminder"
-        onPress={() => {
-          closeReminder();
-          navigation.goBack();
-        }}
-      />
-    </ScrollView>
+        <SecondaryButton
+          icon="x"
+          label="Close reminder"
+          onPress={() => {
+            closeReminder();
+            navigation.goBack();
+          }}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
-    gap: theme.spacing.xl,
-    padding: theme.spacing.lg,
-    paddingTop: 64,
+    gap: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
   },
   heroCard: {
@@ -157,29 +155,29 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     gap: theme.spacing.sm,
-    padding: theme.spacing.xxl,
+    padding: theme.spacing.xl,
     ...theme.shadows.card,
   },
   heroIcon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.pill,
-    height: 72,
+    height: 64,
     justifyContent: 'center',
-    width: 72,
+    width: 64,
   },
   heroTitle: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.title,
+    fontSize: theme.typography.heading,
     fontWeight: '800',
-    lineHeight: 32,
+    lineHeight: 26,
     textAlign: 'center',
   },
   heroDose: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.display,
+    fontSize: theme.typography.title,
     fontWeight: '800',
-    lineHeight: 36,
+    lineHeight: 30,
   },
   heroTiming: {
     color: theme.colors.secondary,
@@ -189,7 +187,7 @@ const styles = StyleSheet.create({
   heroFood: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 24,
+    lineHeight: 22,
     textAlign: 'center',
   },
   messageCard: {
@@ -203,34 +201,18 @@ const styles = StyleSheet.create({
   },
   messageTitle: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
   },
   messageBody: {
     color: theme.colors.textPrimary,
     fontSize: theme.typography.bodyLarge,
     fontWeight: '700',
-    lineHeight: 28,
+    lineHeight: 26,
   },
   messageBodySecondary: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
-    lineHeight: 24,
-  },
-  footerNote: {
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.lg,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  footerTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
-    fontWeight: '800',
-  },
-  footerBody: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    lineHeight: 22,
   },
 });
