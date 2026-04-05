@@ -1,73 +1,65 @@
-# React + TypeScript + Vite
+# MedBridge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MedBridge is a mobile-first Expo + React Native + TypeScript MVP shell for a bilingual post-discharge medication safety and adherence assistant.
 
-Currently, two official plugins are available:
+## Folder structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+  components/     reusable UI primitives
+  screens/        feature screens for the MVP flow
+  navigation/     React Navigation stack
+  constants/      bilingual copy and app constants
+  theme/          color, spacing, radius, typography, shadows
+  data/           mock medication and caregiver data
+  hooks/          app-level state helpers
+  types/          navigation and domain types
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Design system
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+MedBridge uses a restrained healthcare palette with only three core brand colors plus neutral surfaces:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Primary soft violet: `#8E87C8`
+- Secondary calm blue: `#6F95B8`
+- Light accent lavender-blue: `#EDF0FA`
+- Surface white: `#FFFFFF`
+- Background neutral: `#F6F7FB`
+- Border gray: `#E4E7EE`
+- Text dark gray: `#2F3642`
+
+The UI favors large readable text, roomy spacing, soft rounded cards, and very light shadow use.
+
+## Run the project
+
+```bash
+npm install
+npm run start
 ```
+
+You can also run:
+
+```bash
+npm run android
+npm run ios
+npm run web
+```
+
+## Complete in this MVP shell
+
+- Expo + TypeScript project initialized
+- React Navigation stack wired
+- Mobile-first frontend shell for six screens
+- Reusable components: `PrimaryButton`, `SecondaryButton`, `ScreenHeader`, `MedicationCard`, `StatusBadge`
+- Theme tokens for colors, spacing, radius, typography, and light shadows
+- English-first bilingual toggle with Telugu placeholder translations in `src/constants/languages.ts`
+- Mock medication and caregiver data
+
+## Intentionally mocked
+
+- OCR and prescription parsing
+- Backend APIs and persistence
+- Authentication
+- Notifications and reminders
+- Real upload processing
+- Real medication adherence tracking

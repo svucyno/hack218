@@ -1,0 +1,83 @@
+export const languageOptions = [
+  { code: 'en', label: 'English', helper: 'Simple, clear labels' },
+  { code: 'te', label: 'తెలుగు', helper: 'Placeholder Telugu text' },
+] as const;
+
+export type AppLanguage = (typeof languageOptions)[number]['code'];
+
+export const translations = {
+  en: {
+    appName: 'MedBridge',
+    language: 'Language',
+    english: 'English',
+    telugu: 'Telugu',
+    continue: 'Continue',
+    skipForNow: 'Skip for now',
+    getStarted: 'Get started',
+    welcomeTitle: 'Medication support after discharge',
+    welcomeSubtitle:
+      'A calm helper for patients and caregivers to follow medicines safely at home.',
+    welcomePointOne: 'Simple daily medicine reminders',
+    welcomePointTwo: 'Easy document upload',
+    welcomePointThree: 'Caregiver-friendly status view',
+    languageTitle: 'Choose your language',
+    languageSubtitle: 'You can change this again anytime from the dashboard.',
+    homeTitle: 'Patient dashboard',
+    homeSubtitle: "A simple view of today's medicines, documents, and support.",
+    todayPlan: "Today's plan",
+    uploadTitle: 'Upload prescription or discharge paper',
+    uploadSubtitle: 'Use a photo or PDF. This screen is a safe placeholder for the future OCR flow.',
+    scheduleTitle: 'Daily medication schedule',
+    scheduleSubtitle: 'Large actions and simple status cues for each medicine.',
+    caregiverTitle: 'Caregiver overview',
+    caregiverSubtitle: 'A quick summary of medicine progress and support needs.',
+    uploadButton: 'Choose photo or PDF',
+    backHome: 'Back to dashboard',
+    openSchedule: "Open today's schedule",
+    viewCaregiver: 'View caregiver overview',
+    changeLanguage: 'Change language',
+    taken: 'Taken',
+    missed: 'Missed',
+    selected: 'Selected',
+    sampleLabel: 'Placeholder',
+  },
+  te: {
+    appName: 'మెడ్‌బ్రిడ్జ్',
+    language: 'భాష',
+    english: 'ఇంగ్లీష్',
+    telugu: 'తెలుగు',
+    continue: 'కొనసాగించండి',
+    skipForNow: 'ఇప్పటికైతే దాటవేయండి',
+    getStarted: 'ప్రారంభించండి',
+    welcomeTitle: 'డిశ్చార్జ్ తర్వాత ఔషధ సహాయం',
+    welcomeSubtitle:
+      'ఇంట్లో మందులు సురక్షితంగా తీసుకోవడానికి రోగులు మరియు సంరక్షకులకు సహాయపడే ప్రశాంతమైన సహాయకుడు.',
+    welcomePointOne: 'సరళమైన రోజువారీ మందుల గుర్తింపులు',
+    welcomePointTwo: 'సులభమైన పత్రాల అప్లోడ్',
+    welcomePointThree: 'కేర్‌గివర్‌కు స్పష్టమైన స్థితి వీక్షణ',
+    languageTitle: 'మీ భాషను ఎంచుకోండి',
+    languageSubtitle: 'డ్యాష్‌బోర్డ్ నుంచి ఎప్పుడైనా మార్చవచ్చు.',
+    homeTitle: 'రోగి డ్యాష్‌బోర్డ్',
+    homeSubtitle: 'ఈరోజు మందులు, పత్రాలు, మరియు సహాయం కోసం సరళమైన వీక్షణ.',
+    todayPlan: 'ఈరోజు ప్రణాళిక',
+    uploadTitle: 'ప్రిస్క్రిప్షన్ లేదా డిశ్చార్జ్ పత్రాన్ని అప్లోడ్ చేయండి',
+    uploadSubtitle: 'ఫోటో లేదా PDF వాడండి. భవిష్యత్తు OCR కోసం ఇది ప్లేస్‌హోల్డర్ స్క్రీన్.',
+    scheduleTitle: 'రోజువారీ మందుల షెడ్యూల్',
+    scheduleSubtitle: 'ప్రతి మందుకు పెద్ద చర్యలు మరియు స్పష్టమైన స్థితి సూచనలు.',
+    caregiverTitle: 'కేర్‌గివర్ సమీక్ష',
+    caregiverSubtitle: 'మందుల పురోగతి మరియు సహాయ అవసరాల త్వరిత సారాంశం.',
+    uploadButton: 'ఫోటో లేదా PDF ఎంచుకోండి',
+    backHome: 'డ్యాష్‌బోర్డ్‌కు వెళ్లండి',
+    openSchedule: 'ఈరోజు షెడ్యూల్ తెరవండి',
+    viewCaregiver: 'కేర్‌గివర్ సమీక్ష చూడండి',
+    changeLanguage: 'భాష మార్చండి',
+    taken: 'తీసుకున్నారు',
+    missed: 'మిస్ అయింది',
+    selected: 'ఎంచుకున్నారు',
+    sampleLabel: 'ప్లేస్‌హోల్డర్',
+  },
+} as const;
+
+export type TranslationKey = keyof typeof translations.en;
+
+
