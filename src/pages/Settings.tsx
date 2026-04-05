@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { GlassCard } from '../components/common/GlassCard';
 import { PageHeader } from '../components/common/PageHeader';
 import { Settings as SettingsIcon, Globe, Bell, Volume2, Moon } from 'lucide-react';
+import { useMedBridge } from '../contexts/MedBridgeContext';
 
 export function Settings() {
-  const [language, setLanguage] = useState('en');
+  const { settings, updateSettings } = useMedBridge();
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -27,14 +27,14 @@ export function Settings() {
            </div>
            <div className="flex bg-slate-100/80 rounded-xl p-1 w-full sm:w-auto self-end sm:self-auto">
               <button 
-                onClick={() => setLanguage('en')}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-bold transition-all ${language === 'en' ? 'bg-white shadow-md text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                onClick={() => updateSettings({ language: 'en' })}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-bold transition-all ${settings.language === 'en' ? 'bg-white shadow-md text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
               >
                 English
               </button>
               <button 
-                onClick={() => setLanguage('te')}
-                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-bold transition-all ${language === 'te' ? 'bg-white shadow-md text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                onClick={() => updateSettings({ language: 'te' })}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg font-bold transition-all ${settings.language === 'te' ? 'bg-white shadow-md text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
               >
                 తెలుగు
               </button>
@@ -52,7 +52,12 @@ export function Settings() {
                </div>
            </div>
            <label className="relative inline-flex items-center cursor-pointer shrink-0">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
+              <input 
+                 type="checkbox" 
+                 checked={settings.notificationsEnabled} 
+                 onChange={(e) => updateSettings({ notificationsEnabled: e.target.checked })} 
+                 className="sr-only peer" 
+              />
               <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-emerald-500"></div>
            </label>
         </div>
@@ -68,7 +73,12 @@ export function Settings() {
                </div>
            </div>
            <label className="relative inline-flex items-center cursor-pointer shrink-0">
-              <input type="checkbox" defaultChecked className="sr-only peer" />
+              <input 
+                 type="checkbox" 
+                 checked={settings.voicePromptsEnabled} 
+                 onChange={(e) => updateSettings({ voicePromptsEnabled: e.target.checked })}
+                 className="sr-only peer" 
+              />
               <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all peer-checked:bg-emerald-500"></div>
            </label>
         </div>

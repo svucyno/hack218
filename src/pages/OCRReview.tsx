@@ -4,18 +4,21 @@ import { Button } from '../components/common/Button';
 import { GlassCard } from '../components/common/GlassCard';
 import { PageHeader } from '../components/common/PageHeader';
 import { ScanText, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useMedBridge } from '../contexts/MedBridgeContext';
 
 export function OCRReview() {
   const navigate = useNavigate();
+  const { ocrResult } = useMedBridge();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const mockExtractedText = `Patient Name: Venkateshwara Rao\nAge: 68\nDate: 23/10/2026\n\nRx:\n1. Metformin 500mg - 1 tab twice daily after food\n2. Amlodipine 5mg - 1 tab morning before food`;
+  // If no parse result, provide a fallback or error state.
+  const rawText = ocrResult?.rawText || "No document processed. Please go back and upload.";
 
   const handleContinue = () => {
     setIsProcessing(true);
     setTimeout(() => {
       navigate('/review/medicine');
-    }, 1500);
+    }, 500); // short simulated delay for navigating
   };
 
   return (
@@ -41,7 +44,7 @@ export function OCRReview() {
           <div className="absolute top-0 right-0 px-3 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded-bl-lg rounded-tr-2xl uppercase tracking-widest">
             Raw Output
           </div>
-          <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-700">{mockExtractedText}</pre>
+          <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-700">{rawText}</pre>
         </div>
 
         <div className="mt-8 flex items-center gap-3 text-amber-700 bg-amber-50 p-4 rounded-xl border border-amber-200 shadow-sm">
@@ -51,7 +54,7 @@ export function OCRReview() {
 
         <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-slate-100">
           <Button variant="ghost" className="text-slate-500" onClick={() => navigate('/upload')}>Go Back</Button>
-          <Button size="lg" onClick={handleContinue} isLoading={isProcessing} className="gap-2">
+          <Button size="lg" onClick={handleContinue} isLoading={isProcessing} className="gap-2" disabled={!ocrResult}>
              Review Extracted Medicines <ArrowRight size={18} />
           </Button>
         </div>

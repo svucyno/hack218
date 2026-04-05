@@ -1,25 +1,34 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 import { GlassCard } from '../components/common/GlassCard';
-import { mockSchedule, mockMedicines } from '../data/mockData';
 import { Volume2, ChevronLeft, Check, X, AlertCircle } from 'lucide-react';
+import { useMedBridge } from '../contexts/MedBridgeContext';
 
 export function DoseAction() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { schedule, medicines, handleDoseAction, isLoading } = useMedBridge();
 
-  const scheduleItem = mockSchedule.find(s => s.id === id) || mockSchedule[2];
-  const medicine = mockMedicines.find(m => m.id === scheduleItem?.medicineId) || mockMedicines[0];
+  const scheduleItem = schedule.find(s => s.id === id);
+  const medicine = medicines.find(m => m.id === scheduleItem?.medicineId);
 
-  const handleAction = (action: 'taken' | 'missed') => {
-    // In a real app we'd update the state/backend here.
-    console.log(`Action recorded: ${action}`);
+  if (!scheduleItem || !medicine) {
+    return (
+      <div className="max-w-md mx-auto min-h-[85vh] flex flex-col justify-center items-center">
+        <h1 className="text-2xl font-bold">Item not found.</h1>
+        <Button onClick={() => navigate('/schedule')} className="mt-4">Go Back</Button>
+      </div>
+    );
+  }
+
+  const onAction = async (action: 'taken' | 'missed') => {
+    await handleDoseAction(scheduleItem.id, action);
     navigate('/schedule');
   };
 
   return (
     <div className="max-w-md mx-auto min-h-[85vh] flex flex-col pt-4 animate-in slide-in-from-bottom-4 duration-500">
-      <button onClick={() => navigate(-1)} className="flex items-center text-slate-500 mb-8 hover:text-slate-900 transition-colors py-2 font-medium">
+      <button onClick={() => navigate(-1)} className="flex items-center text-slate-500 mb-8 hover:text-slate-900 transition-colors py-2 font-medium" disabled={isLoading}>
         <ChevronLeft className="w-6 h-6 mr-1" /> Back to Schedule
       </button>
 
@@ -58,14 +67,16 @@ export function DoseAction() {
         <Button 
           variant="success" 
           className="w-full text-3xl py-8 rounded-[2rem] shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-3 font-black"
-          onClick={() => handleAction('taken')}
+          onClick={() => onAction('taken')}
+          isLoading={isLoading}
         >
           <Check className="w-8 h-8" /> YES, I TOOK IT
         </Button>
         <Button 
           variant="danger" 
           className="w-full text-2xl py-6 rounded-3xl opacity-90 shadow-lg shadow-red-500/10 flex items-center justify-center gap-2 font-bold"
-          onClick={() => handleAction('missed')}
+          onClick={() => onAction('missed')}
+          isLoading={isLoading}
         >
           <X className="w-6 h-6" /> NO, I MISSED IT
         </Button>

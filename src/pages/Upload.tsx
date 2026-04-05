@@ -5,9 +5,11 @@ import { GlassCard } from '../components/common/GlassCard';
 import { PageHeader } from '../components/common/PageHeader';
 import { UploadCloud, FileText, CheckCircle2, X } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { useMedBridge } from '../contexts/MedBridgeContext';
 
 export function Upload() {
   const navigate = useNavigate();
+  const { handleUpload, isLoading } = useMedBridge();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -28,8 +30,9 @@ export function Upload() {
     }
   };
 
-  const simulateUpload = () => {
-    // In a real app we'd upload. Here we just navigate to OCR review.
+  const simulateUpload = async () => {
+    if (!file) return;
+    await handleUpload(file);
     navigate('/review/ocr');
   };
 
@@ -93,8 +96,8 @@ export function Upload() {
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="ghost" onClick={() => setFile(null)}>Cancel</Button>
-            <Button size="lg" onClick={simulateUpload}>Extract Medicines</Button>
+            <Button variant="ghost" onClick={() => setFile(null)} disabled={isLoading}>Cancel</Button>
+            <Button size="lg" onClick={simulateUpload} isLoading={isLoading}>Extract Medicines</Button>
           </div>
         </GlassCard>
       )}
