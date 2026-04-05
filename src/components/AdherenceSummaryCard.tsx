@@ -16,15 +16,14 @@ export function AdherenceSummaryCard({ taken, total, pending, missed, adherenceP
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.label}>Adherence snapshot</Text>
+        <Text style={styles.label}>Adherence</Text>
         <Feather color={theme.colors.primary} name="activity" size={18} />
       </View>
       <Text style={styles.percent}>{`${adherencePercent}%`}</Text>
-      <Text style={styles.body}>{`${taken} of ${total} doses marked taken today`}</Text>
+      <Text style={styles.body}>{`${taken}/${total} taken`}</Text>
       <View style={styles.badges}>
-        <StatusBadge icon="check-circle" label={`${taken} taken`} variant="accent" />
-        <StatusBadge icon="clock" label={`${pending} pending`} variant="primary" />
-        <StatusBadge icon="alert-circle" label={`${missed} missed`} variant="neutral" />
+        <StatusBadge icon="clock" label={`${pending} Pending`} variant="primary" />
+        <StatusBadge icon="alert-circle" label={`${missed} Missed`} variant="neutral" />
       </View>
     </View>
   );
@@ -32,10 +31,13 @@ export function AdherenceSummaryCard({ taken, total, pending, missed, adherenceP
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
+    borderWidth: 1,
     gap: theme.spacing.sm,
     padding: theme.spacing.lg,
+    ...theme.shadows.card,
   },
   header: {
     alignItems: 'center',
@@ -46,19 +48,19 @@ const styles = StyleSheet.create({
     color: theme.colors.secondary,
     fontSize: theme.typography.caption,
     fontWeight: '800',
-    textTransform: 'uppercase',
     letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
   percent: {
     color: theme.colors.textPrimary,
     fontSize: theme.typography.display,
     fontWeight: '800',
-    lineHeight: 36,
+    lineHeight: 34,
   },
   body: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
   badges: {
     flexDirection: 'row',

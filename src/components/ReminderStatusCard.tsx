@@ -15,18 +15,14 @@ export function ReminderStatusCard({ nextReminder }: ReminderStatusCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.label}>Next reminder</Text>
+        <Text style={styles.label}>Next dose</Text>
         <Feather color={theme.colors.primary} name={isComplete ? 'check-circle' : 'clock'} size={18} />
       </View>
-      <Text style={styles.title}>{isComplete ? 'All doses completed' : nextReminder.name}</Text>
-      <Text style={styles.body}>
-        {isComplete
-          ? 'Everything for today is complete. The patient can rest easy for now.'
-          : `${nextReminder.timing} · ${nextReminder.foodTiming}`}
-      </Text>
+      <Text style={styles.title}>{isComplete ? 'Done today' : nextReminder.name}</Text>
+      <Text style={styles.body}>{isComplete ? 'No pending doses.' : `${nextReminder.timing} · ${nextReminder.foodTiming}`}</Text>
       <StatusBadge
         icon={isComplete ? 'check-circle' : nextReminder.status === 'Pending' ? 'clock' : 'help-circle'}
-        label={isComplete ? 'Completed day' : nextReminder.status}
+        label={isComplete ? 'Done' : nextReminder.status}
         variant={isComplete ? 'accent' : nextReminder.status === 'Pending' ? 'primary' : 'secondary'}
       />
     </View>
@@ -35,10 +31,13 @@ export function ReminderStatusCard({ nextReminder }: ReminderStatusCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
+    borderWidth: 1,
     gap: theme.spacing.sm,
     padding: theme.spacing.lg,
+    ...theme.shadows.soft,
   },
   header: {
     alignItems: 'center',
@@ -54,13 +53,13 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
+    fontSize: theme.typography.bodyLarge,
     fontWeight: '800',
-    lineHeight: 28,
+    lineHeight: 24,
   },
   body: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
 });

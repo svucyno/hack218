@@ -13,6 +13,7 @@ export type RootStackParamList = {
   Welcome: undefined;
   LanguageSelection: undefined;
   AppTabs: NavigatorScreenParams<MainTabParamList> | undefined;
+  Settings: undefined;
   ReminderDetail: undefined;
   ExtractionPreview: undefined;
   ReviewMedicines: undefined;

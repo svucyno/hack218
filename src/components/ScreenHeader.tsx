@@ -17,8 +17,8 @@ export function ScreenHeader({ eyebrow, title, subtitle, rightAction, helper }: 
       <View style={styles.row}>
         <View style={styles.copy}>
           {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
-          <Text style={styles.title}>{title}</Text>
-          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          <Text numberOfLines={2} style={styles.title}>{title}</Text>
+          {subtitle ? <Text numberOfLines={2} style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
         {rightAction ? <View style={styles.action}>{rightAction}</View> : null}
       </View>
@@ -29,7 +29,7 @@ export function ScreenHeader({ eyebrow, title, subtitle, rightAction, helper }: 
 
 const styles = StyleSheet.create({
   container: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   row: {
     flexDirection: 'row',
@@ -38,30 +38,29 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    gap: theme.spacing.xs,
+    gap: 4,
     paddingRight: theme.spacing.xs,
   },
   eyebrow: {
     color: theme.colors.secondary,
     fontSize: theme.typography.caption,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
   title: {
     color: theme.colors.textPrimary,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
-    lineHeight: 30,
+    lineHeight: 28,
   },
   subtitle: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
   action: {
     justifyContent: 'flex-start',
-    paddingTop: 2,
   },
   helper: {
     marginTop: 2,

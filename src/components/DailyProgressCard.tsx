@@ -22,21 +22,19 @@ export function DailyProgressCard({ taken, total, missed, unconfirmed }: DailyPr
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>Today's progress</Text>
+        <Text style={styles.title}>Progress</Text>
         <Feather color={theme.colors.primary} name="bar-chart-2" size={18} />
       </View>
       <View style={styles.barRow}>
         <View style={[styles.segment, styles.segmentTaken, { flex: takenFlex / safeTotal }]} />
-        <View
-          style={[styles.segment, styles.segmentUnconfirmed, { flex: unconfirmedFlex / safeTotal }]}
-        />
+        <View style={[styles.segment, styles.segmentUnconfirmed, { flex: unconfirmedFlex / safeTotal }]} />
         <View style={[styles.segment, styles.segmentMissed, { flex: missedFlex / safeTotal }]} />
         <View style={[styles.segment, styles.segmentPending, { flex: remainingFlex / safeTotal }]} />
       </View>
       <View style={styles.badgeRow}>
-        <StatusBadge icon="check-circle" label={`${taken} taken`} variant="accent" />
-        <StatusBadge icon="help-circle" label={`${unconfirmed} unconfirmed`} variant="secondary" />
-        <StatusBadge icon="alert-circle" label={`${missed} missed`} variant="neutral" />
+        <StatusBadge icon="check-circle" label={`${taken} Taken`} variant="accent" />
+        <StatusBadge icon="help-circle" label={`${unconfirmed} Unconfirmed`} variant="secondary" />
+        <StatusBadge icon="alert-circle" label={`${missed} Missed`} variant="neutral" />
       </View>
     </View>
   );
@@ -48,7 +46,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
     padding: theme.spacing.lg,
     ...theme.shadows.soft,
   },
@@ -66,7 +64,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.pill,
     flexDirection: 'row',
-    height: 14,
+    height: 12,
     overflow: 'hidden',
   },
   segment: {
@@ -76,10 +74,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.secondary,
   },
   segmentUnconfirmed: {
-    backgroundColor: '#C7D7EA',
+    backgroundColor: '#B7CAE2',
   },
   segmentMissed: {
-    backgroundColor: '#D8DCE6',
+    backgroundColor: '#D1D7E2',
   },
   segmentPending: {
     backgroundColor: theme.colors.accent,

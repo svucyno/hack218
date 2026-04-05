@@ -14,15 +14,15 @@ export function CaregiverAlertCard({ alert }: CaregiverAlertCardProps) {
     <View style={[styles.card, alert.active && styles.cardActive]}>
       <View style={styles.header}>
         <View style={styles.iconWrap}>
-          <Feather color={theme.colors.primary} name="users" size={20} />
+          <Feather color={theme.colors.primary} name="users" size={18} />
         </View>
         <StatusBadge
           icon={alert.active ? 'bell' : 'shield'}
-          label={alert.active ? (alert.level === 'alert' ? 'Caregiver alert active' : 'Caregiver watch active') : 'No escalation'}
+          label={alert.active ? 'Alert' : 'Stable'}
           variant={alert.active ? 'secondary' : 'accent'}
         />
       </View>
-      <Text style={styles.title}>{alert.active ? 'Caregiver follow-up may be needed' : 'Caregiver support is stable'}</Text>
+      <Text style={styles.title}>{alert.active ? 'Caregiver follow-up' : 'Caregiver okay'}</Text>
       <Text style={styles.body}>{alert.reason}</Text>
     </View>
   );
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.lg,
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
     padding: theme.spacing.lg,
   },
   cardActive: {
@@ -50,9 +50,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.md,
-    height: 44,
+    height: 40,
     justifyContent: 'center',
-    width: 44,
+    width: 40,
   },
   title: {
     color: theme.colors.textPrimary,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   body: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
 });

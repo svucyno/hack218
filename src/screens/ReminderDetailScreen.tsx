@@ -1,11 +1,9 @@
-import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { EmptyStateCard } from '../components/EmptyStateCard';
-import { LanguageToggle } from '../components/LanguageToggle';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ReminderActionPanel } from '../components/ReminderActionPanel';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -28,16 +26,7 @@ type Props = RootStackScreenProps<'ReminderDetail'> & {
   respondToReminder: (status: 'Taken' | 'Missed' | 'Unconfirmed') => void;
 };
 
-export function ReminderDetailScreen({
-  navigation,
-  language,
-  setLanguage,
-  activeReminder,
-  closeReminder,
-  replayReminderVoice,
-  remindAgain,
-  respondToReminder,
-}: Props) {
+export function ReminderDetailScreen({ navigation, language, activeReminder, closeReminder, replayReminderVoice, remindAgain, respondToReminder }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const languageLabel = language === 'te' ? 'Telugu' : 'English';
 
@@ -45,14 +34,9 @@ export function ReminderDetailScreen({
     return (
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-          <ScreenHeader
-            eyebrow="Reminder"
-            title="No active reminder"
-            subtitle="There is no medicine reminder open right now."
-            rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-          />
-          <EmptyStateCard detail="All active doses have been handled for the moment." icon="check-circle" title="No current reminder" />
-          <PrimaryButton icon="arrow-left" label="Back to Home" onPress={() => navigation.navigate('AppTabs', { screen: 'HomeTab' })} />
+          <ScreenHeader eyebrow="Reminder" title="No reminder" subtitle="Nothing active now." />
+          <EmptyStateCard detail="All active doses have been handled." icon="check-circle" title="Done" />
+          <PrimaryButton icon="arrow-left" label="Home" onPress={() => navigation.navigate('AppTabs', { screen: 'HomeTab' })} />
         </ScrollView>
       </SafeAreaView>
     );
@@ -64,65 +48,47 @@ export function ReminderDetailScreen({
         <ScreenHeader
           eyebrow="Reminder"
           title="Medicine time"
-          subtitle="Choose the clearest action for this dose."
-          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-          helper={<StatusBadge icon="volume-2" label={`${languageLabel} voice prompt`} variant="accent" />}
+          subtitle="Choose one action."
+          helper={<StatusBadge icon="volume-2" label={languageLabel} variant="accent" />}
         />
 
-        {feedback ? <SuccessStateCard detail={feedback} title="Reminder updated" /> : null}
-
-        <View style={styles.heroCard}>
-          <View style={styles.heroIcon}>
-            <Feather color={theme.colors.primary} name="bell" size={24} />
-          </View>
-          <Text style={styles.heroTitle}>{activeReminder.name}</Text>
-          <Text style={styles.heroDose}>{activeReminder.dosage}</Text>
-          <Text style={styles.heroTiming}>{activeReminder.timing}</Text>
-          <Text style={styles.heroFood}>{activeReminder.foodTiming}</Text>
-        </View>
+        {feedback ? <SuccessStateCard detail={feedback} title="Updated" /> : null}
 
         <VoicePromptIndicator languageLabel={languageLabel} />
 
-        <View style={styles.messageCard}>
-          <Text style={styles.messageTitle}>Simple reminder</Text>
-          <Text style={styles.messageBody}>Medicine time. Please take your medicine now.</Text>
-          <Text style={styles.messageBodySecondary}>తెలుగు ప్లేస్‌హోల్డర్: మందు తీసుకునే సమయం.</Text>
-          <SecondaryButton
-            fullWidth={false}
-            icon="volume-2"
-            label="Play voice again"
-            onPress={() => {
-              replayReminderVoice();
-              setFeedback('Voice reminder replayed in the selected language.');
-            }}
-          />
-        </View>
-
         <ReminderActionPanel
           onMissed={() => {
-            setFeedback('Missed dose recorded. Caregiver attention may be needed.');
+            setFeedback('Dose marked missed.');
             respondToReminder('Missed');
             setTimeout(() => navigation.goBack(), 350);
           }}
           onNoResponse={() => {
-            setFeedback('No response recorded. Dose marked as unconfirmed.');
+            setFeedback('Dose marked unconfirmed.');
             respondToReminder('Unconfirmed');
             setTimeout(() => navigation.goBack(), 350);
           }}
           onRemindAgain={() => {
             remindAgain();
-            setFeedback('Reminder will play again shortly.');
+            setFeedback('Reminder will repeat.');
           }}
           onTaken={() => {
-            setFeedback('Dose recorded as taken.');
+            setFeedback('Dose marked taken.');
             respondToReminder('Taken');
             setTimeout(() => navigation.goBack(), 350);
           }}
         />
 
         <SecondaryButton
+          icon="volume-2"
+          label="Play again"
+          onPress={() => {
+            replayReminderVoice();
+            setFeedback('Voice replayed.');
+          }}
+        />
+        <SecondaryButton
           icon="x"
-          label="Close reminder"
+          label="Close"
           onPress={() => {
             closeReminder();
             navigation.goBack();
@@ -143,76 +109,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: theme.spacing.lg,
+    gap: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
-  },
-  heroCard: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xl,
-    ...theme.shadows.card,
-  },
-  heroIcon: {
-    alignItems: 'center',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.pill,
-    height: 64,
-    justifyContent: 'center',
-    width: 64,
-  },
-  heroTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
-    fontWeight: '800',
-    lineHeight: 26,
-    textAlign: 'center',
-  },
-  heroDose: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.title,
-    fontWeight: '800',
-    lineHeight: 30,
-  },
-  heroTiming: {
-    color: theme.colors.secondary,
-    fontSize: theme.typography.bodyLarge,
-    fontWeight: '800',
-  },
-  heroFood: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  messageCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
-    ...theme.shadows.soft,
-  },
-  messageTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.body,
-    fontWeight: '800',
-  },
-  messageBody: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
-    fontWeight: '700',
-    lineHeight: 26,
-  },
-  messageBodySecondary: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
+    paddingBottom: theme.spacing.xl,
   },
 });

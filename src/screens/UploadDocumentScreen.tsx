@@ -1,12 +1,11 @@
-import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { demoDocument, uploadMethods } from '../data/intakeMockData';
-import type { AppLanguage, TranslationKey } from '../constants/languages';
+import type { TranslationKey } from '../constants/languages';
 import { DocumentPreviewCard } from '../components/DocumentPreviewCard';
-import { LanguageToggle } from '../components/LanguageToggle';
+import { HeaderIconButton } from '../components/HeaderIconButton';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SecondaryButton } from '../components/SecondaryButton';
@@ -18,22 +17,13 @@ import type { UploadMethod } from '../types/intake';
 import type { AppTabScreenProps } from '../types/navigation';
 
 type Props = AppTabScreenProps<'UploadTab'> & {
-  language: AppLanguage;
-  setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
   selectedUploadMethod: UploadMethod | null;
   selectUploadMethod: (method: UploadMethod) => void;
   continueWithSampleDocument: () => void;
 };
 
-export function UploadDocumentScreen({
-  navigation,
-  language,
-  setLanguage,
-  selectedUploadMethod,
-  selectUploadMethod,
-  continueWithSampleDocument,
-}: Props) {
+export function UploadDocumentScreen({ navigation, selectedUploadMethod, selectUploadMethod, continueWithSampleDocument }: Props) {
   const [isOpening, setIsOpening] = useState(false);
 
   const handleContinue = () => {
@@ -50,15 +40,13 @@ export function UploadDocumentScreen({
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
         <ScreenHeader
           eyebrow="Upload"
-          title="Add a medicine document"
-          subtitle="Choose a clear prescription, discharge page, or demo file."
-          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
-          helper={<StatusBadge icon="file-text" label="Printed or typed pages work best" variant="accent" />}
+          title="Upload"
+          subtitle="Add a clear document."
+          rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />}
+          helper={<StatusBadge icon="file-text" label="Clear pages work best" variant="accent" />}
         />
 
-        {isOpening ? (
-          <SuccessStateCard title="Preparing document" detail="Opening a demo document for extraction preview." />
-        ) : null}
+        {isOpening ? <SuccessStateCard title="Preparing" detail="Opening sample document." /> : null}
 
         <View style={styles.optionList}>
           {uploadMethods.map((option) => (
@@ -73,16 +61,8 @@ export function UploadDocumentScreen({
           ))}
         </View>
 
-        <View style={styles.tipCard}>
-          <View style={styles.tipRow}>
-            <Feather color={theme.colors.secondary} name="info" size={16} />
-            <Text style={styles.tipTitle}>Helpful note</Text>
-          </View>
-          <Text style={styles.tipBody}>This MVP works best with printed or clearly typed medicine instructions.</Text>
-        </View>
-
         <View style={styles.sampleSection}>
-          <Text style={styles.sectionTitle}>Sample document</Text>
+          <Text style={styles.sectionTitle}>Sample</Text>
           <DocumentPreviewCard
             dateLabel={demoDocument.dateLabel}
             source={demoDocument.source}
@@ -92,13 +72,11 @@ export function UploadDocumentScreen({
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton icon="play-circle" label="Continue with sample" onPress={handleContinue} />
+          <PrimaryButton icon="play-circle" label="Continue" onPress={handleContinue} />
           <SecondaryButton
             icon="arrow-right"
-            label={selectedUploadMethod ? 'Preview selected upload' : 'Go to Home'}
-            onPress={() =>
-              selectedUploadMethod ? navigation.navigate('ExtractionPreview') : navigation.navigate('HomeTab')
-            }
+            label={selectedUploadMethod ? 'Review' : 'Home'}
+            onPress={() => (selectedUploadMethod ? navigation.navigate('ExtractionPreview') : navigation.navigate('HomeTab'))}
           />
         </View>
       </ScrollView>
@@ -116,45 +94,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: theme.spacing.lg,
+    gap: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
+    paddingBottom: theme.spacing.xl,
   },
   optionList: {
-    gap: theme.spacing.md,
-  },
-  tipCard: {
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.lg,
     gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-  },
-  tipRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  tipTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.body,
-    fontWeight: '800',
-  },
-  tipBody: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
   },
   sampleSection: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   sectionTitle: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
+    fontSize: theme.typography.body,
     fontWeight: '800',
-    lineHeight: 26,
+    lineHeight: 22,
   },
   footer: {
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
 });

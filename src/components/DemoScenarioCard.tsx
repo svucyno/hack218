@@ -2,21 +2,22 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../theme';
 import { PrimaryButton } from './PrimaryButton';
+import type { DemoScenarioKey } from '../types/intake';
 
 type DemoScenarioCardProps = {
   title: string;
   detail: string;
-  scenario: 'smooth' | 'missed' | 'no-response' | 'escalated';
+  scenario: DemoScenarioKey;
   selected?: boolean;
-  onPress?: (scenario: 'smooth' | 'missed' | 'no-response' | 'escalated') => void;
+  onPress?: (scenario: DemoScenarioKey) => void;
 };
 
 export function DemoScenarioCard({ title, detail, scenario, selected = false, onPress }: DemoScenarioCardProps) {
   return (
     <View style={[styles.card, selected && styles.cardSelected]}>
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.detail}>{detail}</Text>
-      <PrimaryButton fullWidth={false} label={selected ? 'Active' : 'Use scenario'} onPress={() => onPress?.(scenario)} />
+      <Text numberOfLines={1} style={styles.detail}>{detail}</Text>
+      <PrimaryButton fullWidth={false} label={selected ? 'Active' : 'Use'} onPress={() => onPress?.(scenario)} />
     </View>
   );
 }
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   },
   detail: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 20,
+    fontSize: theme.typography.caption,
+    lineHeight: 18,
   },
 });

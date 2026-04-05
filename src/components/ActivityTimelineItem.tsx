@@ -21,14 +21,14 @@ export function ActivityTimelineItem({ item }: ActivityTimelineItemProps) {
   return (
     <View style={styles.row}>
       <View style={styles.iconWrap}>
-        <Feather color={theme.colors.secondary} name={iconMap[item.type]} size={16} />
+        <Feather color={theme.colors.secondary} name={iconMap[item.type]} size={15} />
       </View>
       <View style={styles.copy}>
         <View style={styles.topRow}>
-          <Text style={styles.title}>{item.title}</Text>
+          <Text numberOfLines={1} style={styles.title}>{item.title}</Text>
           <Text style={styles.time}>{item.timeLabel}</Text>
         </View>
-        <Text style={styles.detail}>{item.detail}</Text>
+        <Text numberOfLines={1} style={styles.detail}>{item.detail}</Text>
       </View>
     </View>
   );
@@ -36,17 +36,17 @@ export function ActivityTimelineItem({ item }: ActivityTimelineItemProps) {
 
 const styles = StyleSheet.create({
   row: {
+    alignItems: 'flex-start',
     flexDirection: 'row',
     gap: theme.spacing.md,
-    alignItems: 'flex-start',
   },
   iconWrap: {
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.pill,
-    height: 32,
+    height: 30,
     justifyContent: 'center',
-    width: 32,
+    width: 30,
   },
   copy: {
     flex: 1,
@@ -60,9 +60,9 @@ const styles = StyleSheet.create({
   title: {
     color: theme.colors.textPrimary,
     flex: 1,
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.bodySmall,
     fontWeight: '800',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   time: {
     color: theme.colors.textSecondary,
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   detail: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 22,
+    fontSize: theme.typography.caption,
+    lineHeight: 18,
   },
 });

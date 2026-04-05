@@ -1,102 +1,122 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  languageOptions,
-  type AppLanguage,
-  type TranslationKey,
-} from '../constants/languages';
-import { PrimaryButton } from '../components/PrimaryButton';
-import { ScreenHeader } from '../components/ScreenHeader';
-import { StatusBadge } from '../components/StatusBadge';
 import { theme } from '../theme';
+import type { AppLanguage, TranslationKey } from '../constants/languages';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type Props = RootStackScreenProps<'LanguageSelection'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
+  completeLanguageSetup: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
 };
 
-export function LanguageSelectionScreen({ navigation, language, setLanguage, t }: Props) {
+const options: Array<{ code: AppLanguage; label: string }> = [
+  { code: 'en', label: 'English' },
+  { code: 'te', label: 'తెలుగు' },
+];
+
+export function LanguageSelectionScreen({ navigation, language, setLanguage, completeLanguageSetup, t }: Props) {
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader title={t('languageTitle')} subtitle={t('languageSubtitle')} />
+    <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
+      <View style={styles.content}>
+        <View style={styles.topSection}>
+          <View style={styles.logoWrap}>
+            <Feather color={theme.colors.surface} name="heart" size={22} />
+          </View>
+          <Text style={styles.brandName}>{t('appName')}</Text>
+          <Text style={styles.headline}>Choose your language</Text>
+        </View>
 
         <View style={styles.options}>
-          {languageOptions.map((option) => {
+          {options.map((option) => {
             const selected = option.code === language;
 
             return (
               <Pressable
                 key={option.code}
                 accessibilityRole="button"
-                onPress={() => setLanguage(option.code)}
-                style={[styles.card, selected && styles.cardSelected]}
+                onPress={() => {
+                  setLanguage(option.code);
+                  completeLanguageSetup(option.code);
+                  navigation.replace('Welcome');
+                }}
+                style={({ pressed }) => [styles.card, selected && styles.cardSelected, pressed && styles.cardPressed]}
               >
-                <View style={styles.cardRow}>
-                  <View style={styles.cardCopy}>
-                    <Text style={styles.cardTitle}>{option.label}</Text>
-                    <Text style={styles.cardSubtitle}>{option.helper}</Text>
-                  </View>
-                  {selected ? <StatusBadge label={t('selected')} variant="secondary" /> : null}
-                </View>
+                <Text style={styles.cardTitle}>{option.label}</Text>
               </Pressable>
             );
           })}
         </View>
-
-        <PrimaryButton label={t('continue')} onPress={() => navigation.replace('AppTabs')} />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
   screen: {
     backgroundColor: theme.colors.background,
     flex: 1,
   },
   content: {
-    gap: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.xxl,
     paddingBottom: theme.spacing.xxl,
+  },
+  topSection: {
+    alignItems: 'flex-start',
+    gap: theme.spacing.md,
+    paddingTop: 64,
+  },
+  logoWrap: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
+    height: 56,
+    justifyContent: 'center',
+    width: 56,
+  },
+  brandName: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.bodyLarge,
+    fontWeight: '800',
+  },
+  headline: {
+    color: theme.colors.textPrimary,
+    fontSize: 30,
+    fontWeight: '800',
+    lineHeight: 34,
+    maxWidth: 280,
   },
   options: {
     gap: theme.spacing.md,
   },
   card: {
+    alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    padding: theme.spacing.lg,
+    justifyContent: 'center',
+    minHeight: 88,
+    paddingHorizontal: theme.spacing.lg,
     ...theme.shadows.card,
   },
   cardSelected: {
+    borderColor: theme.colors.primary,
     backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.secondary,
   },
-  cardRow: {
-    gap: theme.spacing.md,
-  },
-  cardCopy: {
-    gap: theme.spacing.xs,
+  cardPressed: {
+    opacity: 0.97,
   },
   cardTitle: {
     color: theme.colors.textPrimary,
     fontSize: theme.typography.heading,
     fontWeight: '800',
-  },
-  cardSubtitle: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
+    lineHeight: 26,
   },
 });

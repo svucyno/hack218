@@ -27,7 +27,7 @@ export function DoseActionRow({ status, onTaken, onMissed, onUnconfirmed }: Dose
         <SecondaryButton
           fullWidth={false}
           icon="help-circle"
-          label={status === 'Unconfirmed' ? 'Still Unconfirmed' : 'Mark Unconfirmed'}
+          label={status === 'Unconfirmed' ? 'Unconfirmed' : 'Pending'}
           onPress={onUnconfirmed}
         />
       </View>

@@ -14,12 +14,12 @@ export function DocumentPreviewCard({ title, source, dateLabel, summary }: Docum
   return (
     <View style={styles.card}>
       <View style={styles.thumbnail}>
-        <Feather color={theme.colors.primary} name="file-text" size={28} />
+        <Feather color={theme.colors.primary} name="file-text" size={24} />
       </View>
       <View style={styles.copy}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.meta}>{source} · {dateLabel}</Text>
-        <Text style={styles.summary}>{summary}</Text>
+        <Text numberOfLines={1} style={styles.title}>{title}</Text>
+        <Text numberOfLines={1} style={styles.meta}>{`${source} · ${dateLabel}`}</Text>
+        <Text numberOfLines={2} style={styles.summary}>{summary}</Text>
       </View>
     </View>
   );
@@ -33,35 +33,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     ...theme.shadows.card,
   },
   thumbnail: {
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.md,
-    height: 72,
+    height: 58,
     justifyContent: 'center',
-    width: 72,
+    width: 58,
   },
   copy: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   title: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
-    lineHeight: 24,
+    lineHeight: 22,
   },
   meta: {
     color: theme.colors.secondary,
-    fontSize: theme.typography.bodySmall,
+    fontSize: theme.typography.caption,
     fontWeight: '700',
   },
   summary: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 18,
   },
 });

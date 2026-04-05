@@ -22,13 +22,13 @@ export function UploadOptionCard({ title, detail, icon, selected = false, onPres
       style={({ pressed }) => [styles.card, selected && styles.selectedCard, pressed && styles.pressed]}
     >
       <View style={[styles.iconWrap, selected && styles.selectedIconWrap]}>
-        <Feather color={selected ? theme.colors.primary : theme.colors.secondary} name={icon} size={22} />
+        <Feather color={selected ? theme.colors.primary : theme.colors.secondary} name={icon} size={20} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.detail}>{detail}</Text>
+        <Text numberOfLines={1} style={styles.detail}>{detail}</Text>
       </View>
-      {selected ? <Feather color={theme.colors.primary} name="check-circle" size={20} /> : null}
+      {selected ? <Feather color={theme.colors.primary} name="check-circle" size={18} /> : null}
     </Pressable>
   );
 }
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.md,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     ...theme.shadows.soft,
   },
   selectedCard: {
@@ -56,26 +56,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceMuted,
     borderRadius: theme.radius.md,
-    height: 52,
+    height: 46,
     justifyContent: 'center',
-    width: 52,
+    width: 46,
   },
   selectedIconWrap: {
     backgroundColor: theme.colors.surface,
   },
   copy: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   title: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
-    lineHeight: 24,
+    lineHeight: 22,
   },
   detail: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 18,
   },
 });

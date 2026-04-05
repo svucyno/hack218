@@ -22,22 +22,14 @@ const statusVariantMap = {
   Missed: { variant: 'neutral', icon: 'alert-circle' },
 } as const;
 
-export function MedicationCard({
-  name,
-  dosage,
-  timing,
-  foodTiming,
-  note,
-  status,
-  actions,
-}: MedicationCardProps) {
+export function MedicationCard({ name, dosage, timing, foodTiming, note, status, actions }: MedicationCardProps) {
   const badge = statusVariantMap[status];
 
   return (
-    <View style={[styles.card, status === 'Pending' && styles.cardPending, status === 'Missed' && styles.cardMissed]}>
+    <View style={[styles.card, status === 'Pending' && styles.cardPending]}>
       <View style={styles.topRow}>
         <View style={styles.copy}>
-          <Text style={styles.name}>{name}</Text>
+          <Text numberOfLines={1} style={styles.name}>{name}</Text>
           <Text style={styles.meta}>{dosage}</Text>
         </View>
         <StatusBadge icon={badge.icon} label={status} variant={badge.variant} />
@@ -45,18 +37,16 @@ export function MedicationCard({
 
       <View style={styles.infoRow}>
         <View style={styles.infoPill}>
-          <Feather color={theme.colors.secondary} name="clock" size={14} />
+          <Feather color={theme.colors.secondary} name="clock" size={13} />
           <Text style={styles.infoText}>{timing}</Text>
         </View>
         <View style={styles.infoPill}>
-          <Feather color={theme.colors.secondary} name="coffee" size={14} />
+          <Feather color={theme.colors.secondary} name="coffee" size={13} />
           <Text style={styles.infoText}>{foodTiming}</Text>
         </View>
       </View>
 
-      <Text style={styles.note}>{note}</Text>
-      {status === 'Missed' ? <Text style={styles.helper}>Missed dose. A caregiver check-in may help.</Text> : null}
-      {status === 'Unconfirmed' ? <Text style={styles.helper}>No response yet. This dose still needs confirmation.</Text> : null}
+      <Text numberOfLines={1} style={styles.note}>{note}</Text>
       {actions ? <View style={styles.actions}>{actions}</View> : null}
     </View>
   );
@@ -75,9 +65,6 @@ const styles = StyleSheet.create({
   cardPending: {
     borderColor: theme.colors.primary,
   },
-  cardMissed: {
-    borderColor: theme.colors.secondary,
-  },
   topRow: {
     flexDirection: 'row',
     gap: theme.spacing.md,
@@ -89,15 +76,15 @@ const styles = StyleSheet.create({
   },
   name: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '800',
-    lineHeight: 24,
+    lineHeight: 22,
   },
   meta: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.bodySmall,
     fontWeight: '700',
-    lineHeight: 22,
+    lineHeight: 18,
   },
   infoRow: {
     flexDirection: 'row',
@@ -111,23 +98,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: 7,
+    paddingVertical: 6,
   },
   infoText: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodySmall,
+    fontSize: theme.typography.caption,
     fontWeight: '700',
   },
   note: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodySmall,
-    lineHeight: 20,
-  },
-  helper: {
-    color: theme.colors.secondary,
-    fontSize: theme.typography.bodySmall,
-    fontWeight: '700',
-    lineHeight: 20,
+    fontSize: theme.typography.caption,
+    lineHeight: 18,
   },
   actions: {
     gap: theme.spacing.sm,

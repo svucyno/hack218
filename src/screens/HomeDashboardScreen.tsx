@@ -3,39 +3,26 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { AppLanguage, TranslationKey } from '../constants/languages';
+import type { TranslationKey } from '../constants/languages';
 import { ActiveReminderCard } from '../components/ActiveReminderCard';
 import { AdherenceSummaryCard } from '../components/AdherenceSummaryCard';
 import { CaregiverAlertCard } from '../components/CaregiverAlertCard';
-import { DemoScenarioCard } from '../components/DemoScenarioCard';
 import { EmptyStateCard } from '../components/EmptyStateCard';
-import { LanguageToggle } from '../components/LanguageToggle';
+import { HeaderIconButton } from '../components/HeaderIconButton';
 import { ScenarioBanner } from '../components/ScenarioBanner';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { SecondaryButton } from '../components/SecondaryButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { SuccessStateCard } from '../components/SuccessStateCard';
 import { theme } from '../theme';
 import type { DemoScenarioKey } from '../types/intake';
-import type {
-  AdherenceActivityItem,
-  CaregiverAlertState,
-  MedicationItem,
-} from '../types/medication';
+import type { CaregiverAlertState, MedicationItem } from '../types/medication';
 import type { AppTabScreenProps } from '../types/navigation';
 
 type Props = AppTabScreenProps<'HomeTab'> & {
-  language: AppLanguage;
-  setLanguage: (language: AppLanguage) => void;
   t: (key: TranslationKey) => string;
-  scheduleMedicines: MedicationItem[];
   nextReminder: MedicationItem | null;
   caregiverAlert: CaregiverAlertState;
-  caregiverAlertHistory: AdherenceActivityItem[];
-  activityHistory: AdherenceActivityItem[];
   openReminder: (id?: string) => void;
-  applyDemoScenario: (scenario: DemoScenarioKey) => void;
-  resetDemoState: () => void;
   demoScenario: DemoScenarioKey | null;
   demoScenarioSummary: string;
   stats: {
@@ -48,26 +35,18 @@ type Props = AppTabScreenProps<'HomeTab'> & {
   };
 };
 
-const scenarios: Array<{ key: DemoScenarioKey; title: string; detail: string }> = [
-  { key: 'smooth', title: 'Smooth Adherence', detail: 'Most doses taken.' },
-  { key: 'missed', title: 'Missed Doses', detail: 'Caregiver needs attention.' },
-  { key: 'no-response', title: 'No Response', detail: 'Reminder becomes unconfirmed.' },
-  { key: 'escalated', title: 'Escalated', detail: 'Concern is clearly visible.' },
+const quickActions: Array<{
+  key: string;
+  label: string;
+  icon: keyof typeof Feather.glyphMap;
+  route: 'ScheduleTab' | 'UploadTab' | 'CaregiverTab';
+}> = [
+  { key: 'schedule', label: 'Schedule', icon: 'calendar', route: 'ScheduleTab' },
+  { key: 'upload', label: 'Upload', icon: 'upload', route: 'UploadTab' },
+  { key: 'caregiver', label: 'Caregiver', icon: 'users', route: 'CaregiverTab' },
 ];
 
-export function HomeDashboardScreen({
-  navigation,
-  language,
-  setLanguage,
-  nextReminder,
-  caregiverAlert,
-  openReminder,
-  applyDemoScenario,
-  resetDemoState,
-  demoScenario,
-  demoScenarioSummary,
-  stats,
-}: Props) {
+export function HomeDashboardScreen({ navigation, nextReminder, caregiverAlert, openReminder, demoScenario, demoScenarioSummary, stats }: Props) {
   const [isLaunchingReminder, setIsLaunchingReminder] = useState(false);
   const allHandled = stats.pending === 0 && stats.unconfirmed === 0;
 
@@ -75,7 +54,6 @@ export function HomeDashboardScreen({
     if (!nextReminder) {
       return;
     }
-
     setIsLaunchingReminder(true);
     openReminder();
     setTimeout(() => {
@@ -89,35 +67,32 @@ export function HomeDashboardScreen({
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
         <ScreenHeader
           eyebrow="Home"
-          title="Hello, Lakshmi"
-          subtitle="Your next medicine and today’s progress are shown here."
-          rightAction={<LanguageToggle value={language} onChange={setLanguage} />}
+          title="Lakshmi"
+          subtitle="Next dose and today’s status."
+          rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />}
         />
 
-        <ScenarioBanner
-          active={Boolean(demoScenario)}
-          detail={demoScenarioSummary}
-          title={demoScenario ? 'Demo scenario active' : 'Demo mode ready'}
-        />
+        {demoScenario ? <ScenarioBanner active detail={demoScenarioSummary} title="Demo mode" /> : null}
 
         {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}
 
         {isLaunchingReminder ? (
-          <SuccessStateCard title="Opening reminder" detail="Preparing the simple patient reminder now." />
+          <SuccessStateCard title="Opening" detail="Starting reminder." />
         ) : (
           <ActiveReminderCard onStart={launchReminder} reminder={nextReminder} />
         )}
 
-        <View style={styles.summaryGrid}>
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Today's medicines</Text>
-              <Feather color={theme.colors.primary} name="calendar" size={18} />
+        <View style={styles.grid}>
+          <View style={styles.todayCard}>
+            <View style={styles.todayTop}>
+              <Text style={styles.smallLabel}>Today</Text>
+              <Feather color={theme.colors.primary} name="sun" size={18} />
             </View>
-            <Text style={styles.summaryValue}>{stats.total}</Text>
-            <Text style={styles.summaryHelper}>
-              {allHandled ? 'All medicines handled for today.' : `${stats.pending} doses still need attention.`}
-            </Text>
+            <Text style={styles.todayValue}>{stats.total}</Text>
+            <View style={styles.todayBadges}>
+              <StatusBadge icon="clock" label={`${stats.pending} Pending`} variant="primary" />
+              <StatusBadge icon="check-circle" label={`${stats.taken} Taken`} variant="accent" />
+            </View>
           </View>
 
           <AdherenceSummaryCard
@@ -129,60 +104,22 @@ export function HomeDashboardScreen({
           />
         </View>
 
-        {allHandled ? (
-          <EmptyStateCard
-            detail="All scheduled medicines are handled for today. The patient routine looks stable."
-            icon="check-circle"
-            title="Day complete"
-          />
-        ) : null}
+        {allHandled ? <EmptyStateCard detail="All medicines handled." icon="check-circle" title="Done" /> : null}
 
-        <View style={styles.actionsSection}>
-          <Text style={styles.sectionTitle}>Quick actions</Text>
-          <View style={styles.actionRow}>
+        <View style={styles.actionRow}>
+          {quickActions.map((action) => (
             <Pressable
+              key={action.key}
               accessibilityRole="button"
-              onPress={() => navigation.navigate('ScheduleTab')}
+              onPress={() => navigation.navigate(action.route)}
               style={({ pressed }) => [styles.actionCard, pressed && styles.actionPressed]}
             >
               <View style={styles.actionIcon}>
-                <Feather color={theme.colors.secondary} name="calendar" size={18} />
+                <Feather color={theme.colors.secondary} name={action.icon} size={18} />
               </View>
-              <Text style={styles.actionTitle}>Open schedule</Text>
-              <Text style={styles.actionDetail}>Update doses</Text>
+              <Text style={styles.actionLabel}>{action.label}</Text>
             </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => navigation.navigate('UploadTab')}
-              style={({ pressed }) => [styles.actionCard, pressed && styles.actionPressed]}
-            >
-              <View style={styles.actionIcon}>
-                <Feather color={theme.colors.secondary} name="upload" size={18} />
-              </View>
-              <Text style={styles.actionTitle}>Upload document</Text>
-              <Text style={styles.actionDetail}>Review medicines</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.demoSection}>
-          <View style={styles.demoHeader}>
-            <Text style={styles.sectionTitle}>Demo mode</Text>
-            <SecondaryButton fullWidth={false} icon="rotate-ccw" label="Reset" onPress={resetDemoState} />
-          </View>
-          <View style={styles.demoGrid}>
-            {scenarios.map((scenario) => (
-              <DemoScenarioCard
-                key={scenario.key}
-                detail={scenario.detail}
-                onPress={applyDemoScenario}
-                scenario={scenario.key}
-                selected={demoScenario === scenario.key}
-                title={scenario.title}
-              />
-            ))}
-          </View>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -199,15 +136,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: theme.spacing.lg,
+    gap: theme.spacing.md,
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
+    paddingBottom: theme.spacing.xl,
   },
-  summaryGrid: {
+  grid: {
     gap: theme.spacing.md,
   },
-  summaryCard: {
+  todayCard: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
@@ -216,82 +153,60 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     ...theme.shadows.card,
   },
-  summaryRow: {
+  todayTop: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  summaryLabel: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.bodySmall,
-    fontWeight: '700',
+  smallLabel: {
+    color: theme.colors.secondary,
+    fontSize: theme.typography.caption,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
-  summaryValue: {
+  todayValue: {
     color: theme.colors.textPrimary,
     fontSize: theme.typography.display,
     fontWeight: '800',
-    lineHeight: 36,
+    lineHeight: 34,
   },
-  summaryHelper: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
-  },
-  actionsSection: {
-    gap: theme.spacing.md,
-  },
-  sectionTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.heading,
-    fontWeight: '800',
-    lineHeight: 26,
+  todayBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
   },
   actionRow: {
     flexDirection: 'row',
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
   actionCard: {
+    alignItems: 'center',
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
     flex: 1,
     gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
     ...theme.shadows.soft,
   },
   actionPressed: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: theme.colors.accent,
   },
   actionIcon: {
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.md,
-    height: 40,
+    height: 38,
     justifyContent: 'center',
-    width: 40,
+    width: 38,
   },
-  actionTitle: {
+  actionLabel: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.body,
-    fontWeight: '800',
-    lineHeight: 22,
-  },
-  actionDetail: {
-    color: theme.colors.textSecondary,
     fontSize: theme.typography.bodySmall,
-    lineHeight: 20,
-  },
-  demoSection: {
-    gap: theme.spacing.md,
-  },
-  demoHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    justifyContent: 'space-between',
-  },
-  demoGrid: {
-    gap: theme.spacing.sm,
+    fontWeight: '800',
+    lineHeight: 18,
   },
 });

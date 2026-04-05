@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../theme';
 import type { MedicationItem } from '../types/medication';
@@ -18,22 +18,18 @@ export function ActiveReminderCard({ reminder, onStart }: ActiveReminderCardProp
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.iconWrap}>
-          <Feather color={theme.colors.primary} name={complete ? 'check-circle' : 'bell'} size={20} />
+          <Feather color={theme.colors.primary} name={complete ? 'check-circle' : 'bell'} size={18} />
         </View>
         <StatusBadge
-          icon={complete ? 'shield' : 'volume-2'}
-          label={complete ? 'All reminders done' : 'Reminder ready'}
+          icon={complete ? 'shield' : 'clock'}
+          label={complete ? 'Done' : 'Next dose'}
           variant={complete ? 'accent' : 'primary'}
         />
       </View>
-      <Text style={styles.title}>{complete ? 'All reminders completed for today' : 'Medicine time'}</Text>
-      <Text style={styles.body}>
-        {complete
-          ? 'The patient has handled every current reminder in this demo session.'
-          : `${reminder.name} · ${reminder.dosage} · ${reminder.timing}`}
-      </Text>
+      <Text style={styles.title}>{complete ? 'All done' : reminder.name}</Text>
+      <Text style={styles.body}>{complete ? 'No active reminders.' : `${reminder.timing} · ${reminder.dosage}`}</Text>
       {!complete ? <Text style={styles.helper}>{reminder.foodTiming}</Text> : null}
-      {!complete ? <PrimaryButton icon="play-circle" label="Start Reminder Demo" onPress={onStart} /> : null}
+      {!complete ? <PrimaryButton icon="play-circle" label="Start" onPress={onStart} /> : null}
     </View>
   );
 }
@@ -44,7 +40,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    gap: theme.spacing.md,
+    gap: theme.spacing.sm,
     padding: theme.spacing.lg,
     ...theme.shadows.card,
   },
@@ -58,25 +54,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.md,
-    height: 44,
+    height: 40,
     justifyContent: 'center',
-    width: 44,
+    width: 40,
   },
   title: {
     color: theme.colors.textPrimary,
     fontSize: theme.typography.heading,
     fontWeight: '800',
-    lineHeight: 28,
+    lineHeight: 24,
   },
   body: {
     color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
+    fontSize: theme.typography.body,
     fontWeight: '700',
-    lineHeight: 26,
+    lineHeight: 22,
   },
   helper: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.body,
-    lineHeight: 24,
+    fontSize: theme.typography.bodySmall,
+    lineHeight: 20,
   },
 });
