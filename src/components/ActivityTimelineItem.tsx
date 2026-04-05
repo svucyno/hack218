@@ -4,12 +4,13 @@ import { StyleSheet, Text, View } from 'react-native';
 import { theme } from '../theme';
 import type { AdherenceActivityItem } from '../types/medication';
 
-const iconMap: Record<AdherenceActivityItem['type'], 'check-circle' | 'alert-circle' | 'help-circle' | 'users' | 'clock'> = {
+const iconMap: Record<AdherenceActivityItem['type'], 'check-circle' | 'alert-circle' | 'help-circle' | 'users' | 'clock' | 'bell'> = {
   taken: 'check-circle',
   missed: 'alert-circle',
   unconfirmed: 'help-circle',
   caregiver: 'users',
   system: 'clock',
+  reminder: 'bell',
 };
 
 type ActivityTimelineItemProps = {
