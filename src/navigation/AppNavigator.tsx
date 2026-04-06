@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { theme } from '../theme';
-import type { DemoScenarioKey, ReviewMedicine, UploadMethod } from '../types/intake';
+import type { DemoScenarioKey, ReviewMedicine, UploadMethod, UploadPreviewData } from '../types/intake';
 import type {
   AdherenceActivityItem,
   CaregiverAlertState,
@@ -41,6 +41,8 @@ type SharedNavigatorProps = {
   activeReminder: MedicationItem | null;
   demoScenario: DemoScenarioKey | null;
   demoScenarioSummary: string;
+  uploadPreview: UploadPreviewData;
+  apiNotice: string | null;
   stats: {
     total: number;
     taken: number;
@@ -50,18 +52,18 @@ type SharedNavigatorProps = {
     adherencePercent: number;
   };
   selectUploadMethod: (method: UploadMethod) => void;
-  continueWithSampleDocument: () => void;
+  continueWithSampleDocument: () => Promise<void>;
   confirmMedicine: (id: string) => void;
   editMedicine: (id: string) => void;
   removeMedicine: (id: string) => void;
-  generateSchedule: () => MedicationItem[];
+  generateSchedule: () => Promise<MedicationItem[]>;
   resetReviewMedicines: () => void;
-  updateDoseStatus: (id: string, status: MedicationItem['status']) => void;
+  updateDoseStatus: (id: string, status: MedicationItem['status']) => Promise<void>;
   openReminder: (id?: string) => void;
   closeReminder: () => void;
   replayReminderVoice: () => void;
   remindAgain: () => void;
-  respondToReminder: (status: 'Taken' | 'Missed' | 'Unconfirmed') => void;
+  respondToReminder: (status: 'Taken' | 'Missed' | 'Unconfirmed') => Promise<void>;
   applyDemoScenario: (scenario: DemoScenarioKey) => void;
   resetDemoState: () => void;
 };
@@ -108,6 +110,7 @@ function MainTabNavigator(props: SharedNavigatorProps) {
             nextReminder={props.nextReminder}
             openReminder={props.openReminder}
             stats={props.stats}
+            apiNotice={props.apiNotice}
             t={props.t}
           />
         )}
@@ -120,6 +123,7 @@ function MainTabNavigator(props: SharedNavigatorProps) {
             openReminder={props.openReminder}
             scheduleMedicines={props.scheduleMedicines}
             stats={props.stats}
+            apiNotice={props.apiNotice}
             t={props.t}
             updateDoseStatus={props.updateDoseStatus}
           />
@@ -132,6 +136,7 @@ function MainTabNavigator(props: SharedNavigatorProps) {
             continueWithSampleDocument={props.continueWithSampleDocument}
             selectedUploadMethod={props.selectedUploadMethod}
             selectUploadMethod={props.selectUploadMethod}
+            apiNotice={props.apiNotice}
             t={props.t}
           />
         )}
@@ -145,6 +150,7 @@ function MainTabNavigator(props: SharedNavigatorProps) {
             nextReminder={props.nextReminder}
             scheduleMedicines={props.scheduleMedicines}
             stats={props.stats}
+            apiNotice={props.apiNotice}
             t={props.t}
           />
         )}
@@ -206,6 +212,8 @@ export function AppNavigator(props: SharedNavigatorProps) {
           <ExtractionPreviewScreen
             {...screenProps}
             selectedUploadMethod={props.selectedUploadMethod}
+            uploadPreview={props.uploadPreview}
+            apiNotice={props.apiNotice}
           />
         )}
       </Stack.Screen>
@@ -219,6 +227,7 @@ export function AppNavigator(props: SharedNavigatorProps) {
             removeMedicine={props.removeMedicine}
             resetReviewMedicines={props.resetReviewMedicines}
             reviewMedicines={props.reviewMedicines}
+            apiNotice={props.apiNotice}
           />
         )}
       </Stack.Screen>

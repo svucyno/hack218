@@ -25,6 +25,7 @@ type Props = AppTabScreenProps<'HomeTab'> & {
   openReminder: (id?: string) => void;
   demoScenario: DemoScenarioKey | null;
   demoScenarioSummary: string;
+  apiNotice: string | null;
   stats: {
     total: number;
     taken: number;
@@ -46,7 +47,7 @@ const quickActions: Array<{
   { key: 'caregiver', label: 'Caregiver', icon: 'users', route: 'CaregiverTab' },
 ];
 
-export function HomeDashboardScreen({ navigation, nextReminder, caregiverAlert, openReminder, demoScenario, demoScenarioSummary, stats }: Props) {
+export function HomeDashboardScreen({ navigation, nextReminder, caregiverAlert, openReminder, demoScenario, demoScenarioSummary, apiNotice, stats }: Props) {
   const [isLaunchingReminder, setIsLaunchingReminder] = useState(false);
   const allHandled = stats.pending === 0 && stats.unconfirmed === 0;
 
@@ -72,6 +73,7 @@ export function HomeDashboardScreen({ navigation, nextReminder, caregiverAlert, 
           rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />}
         />
 
+        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
         {demoScenario ? <ScenarioBanner active detail={demoScenarioSummary} title="Demo mode" /> : null}
 
         {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}

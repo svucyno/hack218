@@ -21,6 +21,7 @@ type Props = AppTabScreenProps<'CaregiverTab'> & {
   nextReminder: MedicationItem | null;
   caregiverAlert: CaregiverAlertState;
   activityHistory: AdherenceActivityItem[];
+  apiNotice: string | null;
   stats: {
     total: number;
     taken: number;
@@ -31,7 +32,7 @@ type Props = AppTabScreenProps<'CaregiverTab'> & {
   };
 };
 
-export function CaregiverOverviewScreen({ navigation, nextReminder, caregiverAlert, activityHistory, scheduleMedicines, stats }: Props) {
+export function CaregiverOverviewScreen({ navigation, nextReminder, caregiverAlert, activityHistory, scheduleMedicines, apiNotice, stats }: Props) {
   const overallStatus = caregiverAlert.active ? 'Alert' : 'Stable';
   const followUpItems = scheduleMedicines.filter((item) => item.status === 'Pending' || item.status === 'Unconfirmed');
 
@@ -44,6 +45,8 @@ export function CaregiverOverviewScreen({ navigation, nextReminder, caregiverAle
           subtitle="Patient status at a glance."
           rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />}
         />
+
+        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
 
         <View style={styles.heroCard}>
           <View style={styles.heroHeader}>

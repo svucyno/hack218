@@ -31,3 +31,16 @@ export type DemoDocument = {
   dateLabel: string;
   summary: string;
 };
+
+export type UploadPreviewData = {
+  documentId: string;
+  filename: string;
+  documentType: string;
+  extractedText: string;
+  warnings: string[];
+  detectedLines: ExtractionLine[];
+  title: string;
+  source: string;
+  dateLabel: string;
+  summary: string;
+};

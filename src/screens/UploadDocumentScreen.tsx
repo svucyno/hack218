@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { demoDocument, uploadMethods } from '../data/intakeMockData';
 import type { TranslationKey } from '../constants/languages';
 import { DocumentPreviewCard } from '../components/DocumentPreviewCard';
+import { EmptyStateCard } from '../components/EmptyStateCard';
 import { HeaderIconButton } from '../components/HeaderIconButton';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -20,15 +21,16 @@ type Props = AppTabScreenProps<'UploadTab'> & {
   t: (key: TranslationKey) => string;
   selectedUploadMethod: UploadMethod | null;
   selectUploadMethod: (method: UploadMethod) => void;
-  continueWithSampleDocument: () => void;
+  continueWithSampleDocument: () => Promise<void>;
+  apiNotice: string | null;
 };
 
-export function UploadDocumentScreen({ navigation, selectedUploadMethod, selectUploadMethod, continueWithSampleDocument }: Props) {
+export function UploadDocumentScreen({ navigation, selectedUploadMethod, selectUploadMethod, continueWithSampleDocument, apiNotice }: Props) {
   const [isOpening, setIsOpening] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     setIsOpening(true);
-    continueWithSampleDocument();
+    await continueWithSampleDocument();
     setTimeout(() => {
       setIsOpening(false);
       navigation.navigate('ExtractionPreview');
@@ -46,6 +48,7 @@ export function UploadDocumentScreen({ navigation, selectedUploadMethod, selectU
           helper={<StatusBadge icon="file-text" label="Clear pages work best" variant="accent" />}
         />
 
+        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
         {isOpening ? <SuccessStateCard title="Preparing" detail="Opening sample document." /> : null}
 
         <View style={styles.optionList}>
@@ -72,7 +75,7 @@ export function UploadDocumentScreen({ navigation, selectedUploadMethod, selectU
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton icon="play-circle" label="Continue" onPress={handleContinue} />
+          <PrimaryButton icon="play-circle" label="Continue" onPress={() => void handleContinue()} />
           <SecondaryButton
             icon="arrow-right"
             label={selectedUploadMethod ? 'Review' : 'Home'}

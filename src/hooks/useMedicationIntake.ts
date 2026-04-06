@@ -1,7 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { defaultGeneratedSchedule, initialReviewMedicines } from '../data/intakeMockData';
-import type { DemoScenarioKey, ReviewMedicine, UploadMethod } from '../types/intake';
+import { getPatientTodayApi } from '../api/patient';
+import { reviewMedicinesApi } from '../api/review';
+import { generateScheduleApi } from '../api/schedule';
+import { updateDoseStatusApi } from '../api/doses';
+import { uploadSampleDocument } from '../api/upload';
+import {
+  mapPatientTodayResponse,
+  mapReviewResponseToReviewMedicines,
+  mapScheduleResponseToMedicationItems,
+  mapUploadResponseToPreview,
+  mapRecentActivity,
+} from '../api/mappers';
+import { demoDocument, defaultGeneratedSchedule, extractedLines, initialReviewMedicines } from '../data/intakeMockData';
+import type { DemoScenarioKey, ReviewMedicine, UploadMethod, UploadPreviewData } from '../types/intake';
 import type {
   AdherenceActivityItem,
   CaregiverAlertState,
@@ -19,6 +31,19 @@ const initialActivityHistory: AdherenceActivityItem[] = [
     type: 'system',
   },
 ];
+
+const initialUploadPreview: UploadPreviewData = {
+  documentId: demoDocument.id,
+  filename: demoDocument.title,
+  documentType: 'discharge_summary',
+  extractedText: extractedLines.map((line) => line.text).join('\n'),
+  warnings: ['One line may need manual review'],
+  detectedLines: extractedLines,
+  title: demoDocument.title,
+  source: demoDocument.source,
+  dateLabel: demoDocument.dateLabel,
+  summary: demoDocument.summary,
+};
 
 function buildScheduleFromReview(reviewMedicines: ReviewMedicine[]): MedicationItem[] {
   const active = reviewMedicines.filter((item) => !item.removed && item.confirmed);
@@ -86,7 +111,7 @@ function buildScenarioState(scenario: DemoScenarioKey): {
     return {
       schedule: defaultGeneratedSchedule.map((item, index) => ({
         ...item,
-        status: index < 3 ? 'Taken' : index === 3 ? 'Pending' : 'Pending',
+        status: index < 3 ? 'Taken' : 'Pending',
       })),
       history: [
         {
@@ -172,6 +197,8 @@ export function useMedicationIntake() {
   const [demoScenarioSummary, setDemoScenarioSummary] = useState(
     'Choose a scenario to guide the MedBridge demo from the dashboard.',
   );
+  const [uploadPreview, setUploadPreview] = useState<UploadPreviewData>(initialUploadPreview);
+  const [apiNotice, setApiNotice] = useState<string | null>(null);
 
   const visibleReviewMedicines = useMemo(
     () => reviewMedicines.filter((item) => !item.removed),
@@ -242,6 +269,35 @@ export function useMedicationIntake() {
     previousAlertState.current = caregiverAlert.active;
   }, [caregiverAlert]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydratePatientToday = async () => {
+      try {
+        const response = await getPatientTodayApi();
+        if (cancelled) {
+          return;
+        }
+
+        const mapped = mapPatientTodayResponse(response);
+        setScheduleMedicines(mapped.scheduleMedicines);
+        setActivityHistory(mapped.activityHistory.length > 0 ? mapped.activityHistory : initialActivityHistory);
+        setActiveReminderId(mapped.nextReminder?.id ?? null);
+        setApiNotice(null);
+      } catch {
+        if (!cancelled) {
+          setApiNotice('Using local demo data. Check the MedBridge backend connection.');
+        }
+      }
+    };
+
+    void hydratePatientToday();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const pushActivity = (item: AdherenceActivityItem) => {
     setActivityHistory((items) => [item, ...items].slice(0, 8));
   };
@@ -254,6 +310,7 @@ export function useMedicationIntake() {
     setActivityHistory(state.history);
     setCaregiverAlertHistory([]);
     setActiveReminderId(state.activeReminderId);
+    setApiNotice(null);
   };
 
   const resetDemoState = () => {
@@ -263,6 +320,7 @@ export function useMedicationIntake() {
     setActivityHistory(initialActivityHistory);
     setCaregiverAlertHistory([]);
     setActiveReminderId(defaultGeneratedSchedule.find((item) => item.status === 'Pending')?.id ?? null);
+    setApiNotice(null);
   };
 
   const selectUploadMethod = (method: UploadMethod) => {
@@ -273,9 +331,18 @@ export function useMedicationIntake() {
     setReviewMedicines(initialReviewMedicines);
   };
 
-  const continueWithSampleDocument = () => {
+  const continueWithSampleDocument = async () => {
     setSelectedUploadMethod('sample');
     resetReviewMedicines();
+
+    try {
+      const response = await uploadSampleDocument();
+      setUploadPreview(mapUploadResponseToPreview(response));
+      setApiNotice(null);
+    } catch {
+      setUploadPreview(initialUploadPreview);
+      setApiNotice('Backend upload is unavailable. Using local sample document.');
+    }
   };
 
   const confirmMedicine = (id: string) => {
@@ -311,25 +378,65 @@ export function useMedicationIntake() {
     );
   };
 
-  const generateSchedule = () => {
-    const generated = buildScheduleFromReview(reviewMedicines);
-    setScheduleMedicines(generated);
-    setActiveReminderId(generated.find((item) => item.status === 'Pending')?.id ?? null);
-    setActivityHistory([
-      buildActivityItem(
-        'system',
-        'Schedule generated',
-        'Medicines were converted into a morning, afternoon, and night plan.',
-        'Just now',
-      ),
-    ]);
-    setCaregiverAlertHistory([]);
-    setDemoScenario(null);
-    setDemoScenarioSummary('Schedule generated successfully. The demo is now following the patient flow.');
-    return generated;
+  const generateSchedule = async () => {
+    try {
+      const reviewResponse = await reviewMedicinesApi(
+        reviewMedicines.map((medicine) => ({
+          id: medicine.id,
+          name: medicine.name,
+          dosage: medicine.dosage,
+          frequency: medicine.frequency,
+          timing: medicine.timing,
+          duration: medicine.duration,
+          foodTiming: medicine.foodTiming,
+          confirmed: medicine.confirmed,
+          removed: medicine.removed,
+          edited: medicine.edited,
+          warnings: medicine.warnings,
+        })),
+      );
+
+      const normalizedReviewMedicines = mapReviewResponseToReviewMedicines(reviewResponse);
+      setReviewMedicines(normalizedReviewMedicines);
+
+      const scheduleResponse = await generateScheduleApi(reviewResponse.medicines);
+      const generated = mapScheduleResponseToMedicationItems(scheduleResponse);
+      setScheduleMedicines(generated);
+      setActiveReminderId(generated.find((item) => item.status === 'Pending')?.id ?? null);
+      setActivityHistory([
+        buildActivityItem(
+          'system',
+          'Schedule generated',
+          'Medicines were converted into a morning, afternoon, and night plan.',
+          'Just now',
+        ),
+      ]);
+      setCaregiverAlertHistory([]);
+      setDemoScenario(null);
+      setDemoScenarioSummary('Schedule generated successfully. The demo is now following the patient flow.');
+      setApiNotice(null);
+      return generated;
+    } catch {
+      const generated = buildScheduleFromReview(reviewMedicines);
+      setScheduleMedicines(generated);
+      setActiveReminderId(generated.find((item) => item.status === 'Pending')?.id ?? null);
+      setActivityHistory([
+        buildActivityItem(
+          'system',
+          'Schedule generated',
+          'Medicines were converted into a morning, afternoon, and night plan.',
+          'Just now',
+        ),
+      ]);
+      setCaregiverAlertHistory([]);
+      setDemoScenario(null);
+      setDemoScenarioSummary('Schedule generated successfully. The demo is now following the patient flow.');
+      setApiNotice('Backend schedule sync failed. Using local demo schedule.');
+      return generated;
+    }
   };
 
-  const updateDoseStatus = (id: string, status: MedicationStatus) => {
+  const updateDoseStatusLocally = (id: string, status: MedicationStatus) => {
     let updatedDose: MedicationItem | undefined;
 
     setScheduleMedicines((items) =>
@@ -368,6 +475,34 @@ export function useMedicationIntake() {
     };
 
     pushActivity(buildActivityItem(activityTypeMap[status], titles[status], details[status], updatedDose.timing));
+  };
+
+  const updateDoseStatus = async (id: string, status: MedicationStatus) => {
+    try {
+      const response = await updateDoseStatusApi(id, status.toLowerCase() as 'pending' | 'taken' | 'missed' | 'unconfirmed');
+      const generated = [
+        ...response.groups.morning,
+        ...response.groups.afternoon,
+        ...response.groups.night,
+      ].map((dose) => ({
+        id: dose.dose_id,
+        name: dose.medicine_name,
+        dosage: dose.dosage,
+        timing: dose.time_label,
+        period: dose.period === 'afternoon' ? 'Afternoon' : dose.period === 'night' ? 'Night' : 'Morning',
+        foodTiming: dose.food_note.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+        note: dose.note,
+        status: dose.status === 'taken' ? 'Taken' : dose.status === 'missed' ? 'Missed' : dose.status === 'unconfirmed' ? 'Unconfirmed' : 'Pending',
+      })) as MedicationItem[];
+
+      setScheduleMedicines(generated);
+      setActiveReminderId(response.next_reminder?.dose_id ?? null);
+      setActivityHistory(response.recent_activity.map(mapRecentActivity));
+      setApiNotice(null);
+    } catch {
+      updateDoseStatusLocally(id, status);
+      setApiNotice('Dose update could not reach the backend. Showing local progress only.');
+    }
   };
 
   const openReminder = (id?: string) => {
@@ -421,12 +556,12 @@ export function useMedicationIntake() {
     );
   };
 
-  const respondToReminder = (status: Extract<MedicationStatus, 'Taken' | 'Missed' | 'Unconfirmed'>) => {
+  const respondToReminder = async (status: Extract<MedicationStatus, 'Taken' | 'Missed' | 'Unconfirmed'>) => {
     if (!activeReminder) {
       return;
     }
 
-    updateDoseStatus(activeReminder.id, status);
+    await updateDoseStatus(activeReminder.id, status);
     closeReminder();
   };
 
@@ -442,6 +577,8 @@ export function useMedicationIntake() {
     stats,
     demoScenario,
     demoScenarioSummary,
+    uploadPreview,
+    apiNotice,
     selectUploadMethod,
     continueWithSampleDocument,
     confirmMedicine,

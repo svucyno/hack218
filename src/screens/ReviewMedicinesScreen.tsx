@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { EmptyStateCard } from '../components/EmptyStateCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ReviewMedicineCard } from '../components/ReviewMedicineCard';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -18,24 +19,23 @@ type Props = RootStackScreenProps<'ReviewMedicines'> & {
   confirmMedicine: (id: string) => void;
   editMedicine: (id: string) => void;
   removeMedicine: (id: string) => void;
-  generateSchedule: () => MedicationItem[];
+  generateSchedule: () => Promise<MedicationItem[]>;
   resetReviewMedicines: () => void;
+  apiNotice: string | null;
 };
 
-export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedicine, editMedicine, removeMedicine, generateSchedule, resetReviewMedicines }: Props) {
+export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedicine, editMedicine, removeMedicine, generateSchedule, resetReviewMedicines, apiNotice }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const confirmedCount = reviewMedicines.filter((item) => item.confirmed).length;
   const warningCount = reviewMedicines.reduce((count, item) => count + item.warnings.length, 0);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      generateSchedule();
-      setIsGenerating(false);
-      setShowSuccess(true);
-      setTimeout(() => navigation.navigate('AppTabs', { screen: 'ScheduleTab' }), 450);
-    }, 500);
+    await generateSchedule();
+    setIsGenerating(false);
+    setShowSuccess(true);
+    setTimeout(() => navigation.navigate('AppTabs', { screen: 'ScheduleTab' }), 450);
   };
 
   return (
@@ -48,6 +48,7 @@ export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedi
           helper={<StatusBadge icon="check-circle" label={`${confirmedCount} Confirmed`} variant="accent" />}
         />
 
+        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
         {isGenerating ? <SuccessStateCard title="Generating" detail="Creating schedule." /> : null}
         {showSuccess ? <SuccessStateCard title="Ready" detail="Schedule created." /> : null}
 
@@ -71,7 +72,7 @@ export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedi
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton icon="calendar" label="Generate" onPress={handleGenerate} />
+          <PrimaryButton icon="calendar" label="Generate" onPress={() => void handleGenerate()} />
           <SecondaryButton icon="rotate-ccw" label="Reset" onPress={resetReviewMedicines} />
         </View>
       </ScrollView>

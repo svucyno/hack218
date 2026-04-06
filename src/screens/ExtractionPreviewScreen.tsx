@@ -3,20 +3,21 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { demoDocument, extractedLines } from '../data/intakeMockData';
-import { DocumentPreviewCard } from '../components/DocumentPreviewCard';
 import { EmptyStateCard } from '../components/EmptyStateCard';
+import { DocumentPreviewCard } from '../components/DocumentPreviewCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { SecondaryButton } from '../components/SecondaryButton';
 import { StatusBadge } from '../components/StatusBadge';
 import { SuccessStateCard } from '../components/SuccessStateCard';
 import { theme } from '../theme';
-import type { UploadMethod } from '../types/intake';
+import type { UploadMethod, UploadPreviewData } from '../types/intake';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type Props = RootStackScreenProps<'ExtractionPreview'> & {
   selectedUploadMethod: UploadMethod | null;
+  uploadPreview: UploadPreviewData;
+  apiNotice: string | null;
 };
 
 const methodLabelMap: Record<UploadMethod, string> = {
@@ -26,10 +27,10 @@ const methodLabelMap: Record<UploadMethod, string> = {
   sample: 'Sample',
 };
 
-export function ExtractionPreviewScreen({ navigation, selectedUploadMethod }: Props) {
+export function ExtractionPreviewScreen({ navigation, selectedUploadMethod, uploadPreview, apiNotice }: Props) {
   const [isLoading, setIsLoading] = useState(true);
-  const reviewCount = extractedLines.filter((line) => line.clarity === 'review').length;
-  const clearCount = extractedLines.length - reviewCount;
+  const reviewCount = uploadPreview.detectedLines.filter((line) => line.clarity === 'review').length;
+  const clearCount = uploadPreview.detectedLines.length - reviewCount;
   const currentLabel = selectedUploadMethod ? methodLabelMap[selectedUploadMethod] : 'Sample';
 
   useEffect(() => {
@@ -58,13 +59,14 @@ export function ExtractionPreviewScreen({ navigation, selectedUploadMethod }: Pr
           helper={<StatusBadge icon="search" label={currentLabel} variant="accent" />}
         />
 
+        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
         <SuccessStateCard title="Ready" detail="Review before schedule." />
 
         <DocumentPreviewCard
-          dateLabel={demoDocument.dateLabel}
-          source={demoDocument.source}
-          summary={demoDocument.summary}
-          title={demoDocument.title}
+          dateLabel={uploadPreview.dateLabel}
+          source={uploadPreview.source}
+          summary={uploadPreview.summary}
+          title={uploadPreview.title}
         />
 
         <View style={styles.summaryCard}>
@@ -79,10 +81,10 @@ export function ExtractionPreviewScreen({ navigation, selectedUploadMethod }: Pr
         </View>
 
         <View style={styles.lineList}>
-          {extractedLines.length === 0 ? (
+          {uploadPreview.detectedLines.length === 0 ? (
             <EmptyStateCard detail="No medicine lines found." title="Nothing detected" />
           ) : (
-            extractedLines.map((line) => (
+            uploadPreview.detectedLines.map((line) => (
               <View key={line.id} style={styles.lineCard}>
                 <StatusBadge
                   icon={line.clarity === 'clear' ? 'check-circle' : 'help-circle'}

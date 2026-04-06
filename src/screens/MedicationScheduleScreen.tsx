@@ -20,6 +20,7 @@ type Props = AppTabScreenProps<'ScheduleTab'> & {
   t: (key: TranslationKey) => string;
   scheduleMedicines: MedicationItem[];
   caregiverAlert: CaregiverAlertState;
+  apiNotice: string | null;
   stats: {
     total: number;
     taken: number;
@@ -28,13 +29,13 @@ type Props = AppTabScreenProps<'ScheduleTab'> & {
     pending: number;
     adherencePercent: number;
   };
-  updateDoseStatus: (id: string, status: MedicationItem['status']) => void;
+  updateDoseStatus: (id: string, status: MedicationItem['status']) => Promise<void>;
   openReminder: (id?: string) => void;
 };
 
 const periods: MedicationPeriod[] = ['Morning', 'Afternoon', 'Night'];
 
-export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregiverAlert, stats, updateDoseStatus, openReminder }: Props) {
+export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregiverAlert, stats, updateDoseStatus, openReminder, apiNotice }: Props) {
   const [isLaunchingReminder, setIsLaunchingReminder] = useState(false);
   const allHandled = stats.pending === 0 && stats.unconfirmed === 0;
 
@@ -57,6 +58,7 @@ export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregi
           rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />}
         />
 
+        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
         {isLaunchingReminder ? <SuccessStateCard title="Opening" detail="Starting reminder." /> : null}
 
         <View style={styles.summaryCard}>
@@ -105,9 +107,9 @@ export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregi
                           <PrimaryButton icon="bell" label="Reminder" onPress={() => launchReminder(item.id)} />
                         ) : null}
                         <DoseActionRow
-                          onMissed={() => updateDoseStatus(item.id, 'Missed')}
-                          onTaken={() => updateDoseStatus(item.id, 'Taken')}
-                          onUnconfirmed={() => updateDoseStatus(item.id, 'Unconfirmed')}
+                          onMissed={() => void updateDoseStatus(item.id, 'Missed')}
+                          onTaken={() => void updateDoseStatus(item.id, 'Taken')}
+                          onUnconfirmed={() => void updateDoseStatus(item.id, 'Unconfirmed')}
                           status={item.status}
                         />
                       </View>

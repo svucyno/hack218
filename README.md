@@ -6,12 +6,13 @@ MedBridge is a mobile-first Expo + React Native + TypeScript MVP shell for a bil
 
 ```text
 src/
+  api/            backend client helpers and endpoint modules
   components/     reusable UI primitives
   screens/        feature screens for the MVP flow
   navigation/     React Navigation stack
   constants/      bilingual copy and app constants
   theme/          color, spacing, radius, typography, shadows
-  data/           mock medication and caregiver data
+  data/           fallback mock medication and caregiver data
   hooks/          app-level state helpers
   types/          navigation and domain types
 ```
@@ -45,6 +46,17 @@ npm run ios
 npm run web
 ```
 
+## Backend API URL
+
+Set the frontend API base URL with:
+
+```bash
+EXPO_PUBLIC_API_URL=http://192.168.x.x:8000
+```
+
+For a physical phone on the same Wi-Fi, this should usually be your laptop LAN IP, not `localhost`.
+Do not put secrets in `EXPO_PUBLIC_*` variables.
+
 ## Complete in this MVP shell
 
 - Expo + TypeScript project initialized
@@ -53,13 +65,13 @@ npm run web
 - Reusable components: `PrimaryButton`, `SecondaryButton`, `ScreenHeader`, `MedicationCard`, `StatusBadge`
 - Theme tokens for colors, spacing, radius, typography, and light shadows
 - English-first bilingual toggle with Telugu placeholder translations in `src/constants/languages.ts`
-- Mock medication and caregiver data
+- FastAPI-backed upload, review, schedule, patient-today, and dose-status integration with local fallback
 
 ## Intentionally mocked
 
 - OCR and prescription parsing
-- Backend APIs and persistence
 - Authentication
-- Notifications and reminders
-- Real upload processing
-- Real medication adherence tracking
+- Notifications and reminders delivery
+- Persistent storage
+- Real upload processing from device files
+- Real medication adherence syncing across sessions
