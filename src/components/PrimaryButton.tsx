@@ -45,14 +45,17 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: theme.spacing.sm,
     justifyContent: 'center',
   },
   label: {
     color: theme.colors.surface,
+    flexShrink: 1,
     fontSize: theme.typography.button,
     fontWeight: '800',
     lineHeight: 22,
+    textAlign: 'center',
   },
   pressed: {
     opacity: 0.94,

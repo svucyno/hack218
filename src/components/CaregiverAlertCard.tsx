@@ -1,15 +1,17 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatStatusLabel, localizeKnownText, getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import type { CaregiverAlertState } from '../types/medication';
 import { StatusBadge } from './StatusBadge';
 
 type CaregiverAlertCardProps = {
+  language: AppLanguage;
   alert: CaregiverAlertState;
 };
 
-export function CaregiverAlertCard({ alert }: CaregiverAlertCardProps) {
+export function CaregiverAlertCard({ language, alert }: CaregiverAlertCardProps) {
   return (
     <View style={[styles.card, alert.active && styles.cardActive]}>
       <View style={styles.header}>
@@ -18,12 +20,12 @@ export function CaregiverAlertCard({ alert }: CaregiverAlertCardProps) {
         </View>
         <StatusBadge
           icon={alert.active ? 'bell' : 'shield'}
-          label={alert.active ? 'Alert' : 'Stable'}
+          label={alert.active ? formatStatusLabel(language, 'alert') : formatStatusLabel(language, 'stable')}
           variant={alert.active ? 'secondary' : 'accent'}
         />
       </View>
-      <Text style={styles.title}>{alert.active ? 'Caregiver follow-up' : 'Caregiver okay'}</Text>
-      <Text style={styles.body}>{alert.reason}</Text>
+      <Text style={styles.title}>{alert.active ? getTranslation(language, 'caregiver.followUpNeeded') : getTranslation(language, 'caregiver.followUpOkay')}</Text>
+      <Text style={styles.body}>{localizeKnownText(language, alert.reason)}</Text>
     </View>
   );
 }

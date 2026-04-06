@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { formatStatusLabel, getTranslation, localizeKnownText, type AppLanguage, type TranslationKey } from '../constants/languages';
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ReviewMedicineCard } from '../components/ReviewMedicineCard';
@@ -15,6 +16,8 @@ import type { MedicationItem } from '../types/medication';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type Props = RootStackScreenProps<'ReviewMedicines'> & {
+  language: AppLanguage;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   reviewMedicines: ReviewMedicine[];
   confirmMedicine: (id: string) => void;
   editMedicine: (id: string) => void;
@@ -24,7 +27,7 @@ type Props = RootStackScreenProps<'ReviewMedicines'> & {
   apiNotice: string | null;
 };
 
-export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedicine, editMedicine, removeMedicine, generateSchedule, resetReviewMedicines, apiNotice }: Props) {
+export function ReviewMedicinesScreen({ navigation, language, t, reviewMedicines, confirmMedicine, editMedicine, removeMedicine, generateSchedule, resetReviewMedicines, apiNotice }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const confirmedCount = reviewMedicines.filter((item) => item.confirmed).length;
@@ -41,39 +44,28 @@ export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedi
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader
-          eyebrow="Review"
-          title="Medicines"
-          subtitle="Confirm before schedule."
-          helper={<StatusBadge icon="check-circle" label={`${confirmedCount} Confirmed`} variant="accent" />}
-        />
+        <ScreenHeader eyebrow={t('review.eyebrow')} title={t('review.title')} subtitle={t('review.subtitle')} helper={<StatusBadge icon="check-circle" label={`${confirmedCount} ${t('review.confirmed')}`} variant="accent" />} />
 
-        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
-        {isGenerating ? <SuccessStateCard title="Generating" detail="Creating schedule." /> : null}
-        {showSuccess ? <SuccessStateCard title="Ready" detail="Schedule created." /> : null}
+        {apiNotice ? <EmptyStateCard title={t('home.usingDemoData')} detail={localizeKnownText(language, apiNotice)} /> : null}
+        {isGenerating ? <SuccessStateCard title={t('common.generating')} detail={t('review.generatingDetail')} /> : null}
+        {showSuccess ? <SuccessStateCard title={t('common.ready')} detail={t('review.readyDetail')} /> : null}
 
         <View style={styles.summaryCard}>
           <View style={styles.badges}>
-            <StatusBadge icon="layers" label={`${reviewMedicines.length} Items`} variant="accent" />
-            <StatusBadge icon="alert-circle" label={`${warningCount} Warnings`} variant="secondary" />
+            <StatusBadge icon="layers" label={`${reviewMedicines.length} ${t('common.items')}`} variant="accent" />
+            <StatusBadge icon="alert-circle" label={`${warningCount} ${t('common.warnings')}`} variant="secondary" />
           </View>
         </View>
 
         <View style={styles.list}>
           {reviewMedicines.map((medicine) => (
-            <ReviewMedicineCard
-              key={medicine.id}
-              medicine={medicine}
-              onConfirm={() => confirmMedicine(medicine.id)}
-              onEdit={() => editMedicine(medicine.id)}
-              onRemove={() => removeMedicine(medicine.id)}
-            />
+            <ReviewMedicineCard key={medicine.id} language={language} medicine={medicine} onConfirm={() => confirmMedicine(medicine.id)} onEdit={() => editMedicine(medicine.id)} onRemove={() => removeMedicine(medicine.id)} />
           ))}
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton icon="calendar" label="Generate" onPress={() => void handleGenerate()} />
-          <SecondaryButton icon="rotate-ccw" label="Reset" onPress={resetReviewMedicines} />
+          <PrimaryButton icon="calendar" label={t('review.generate')} onPress={() => void handleGenerate()} />
+          <SecondaryButton icon="rotate-ccw" label={t('common.reset')} onPress={resetReviewMedicines} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -81,38 +73,11 @@ export function ReviewMedicinesScreen({ navigation, reviewMedicines, confirmMedi
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  screen: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  content: {
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  summaryCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-    ...theme.shadows.card,
-  },
-  badges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-  },
-  list: {
-    gap: theme.spacing.sm,
-  },
-  footer: {
-    gap: theme.spacing.sm,
-  },
+  safeArea: { backgroundColor: theme.colors.background, flex: 1 },
+  screen: { backgroundColor: theme.colors.background, flex: 1 },
+  content: { gap: theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.xl },
+  summaryCard: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radius.lg, borderWidth: 1, gap: theme.spacing.sm, padding: theme.spacing.lg, ...theme.shadows.card },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
+  list: { gap: theme.spacing.sm },
+  footer: { gap: theme.spacing.sm },
 });

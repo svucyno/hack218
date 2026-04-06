@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { translations, type AppLanguage, type TranslationKey } from '../constants/languages';
+import { getTranslation, type AppLanguage, type TranslationKey } from '../constants/languages';
 
 export function useAppLanguage() {
   const [language, setLanguageState] = useState<AppLanguage>('en');
@@ -15,7 +15,8 @@ export function useAppLanguage() {
     setHasCompletedLanguageSetup(true);
   };
 
-  const t = (key: TranslationKey) => translations[language][key] ?? translations.en[key];
+  const t = (key: TranslationKey, params?: Record<string, string | number>) =>
+    getTranslation(language, key, params);
 
   return {
     language,

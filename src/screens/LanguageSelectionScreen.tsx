@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { theme } from '../theme';
+import { formatLanguageName, theme } from '../theme';
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import type { RootStackScreenProps } from '../types/navigation';
 
@@ -10,7 +10,7 @@ type Props = RootStackScreenProps<'LanguageSelection'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
   completeLanguageSetup: (language: AppLanguage) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 };
 
 const options: Array<{ code: AppLanguage; label: string }> = [
@@ -26,14 +26,13 @@ export function LanguageSelectionScreen({ navigation, language, setLanguage, com
           <View style={styles.logoWrap}>
             <Feather color={theme.colors.surface} name="heart" size={22} />
           </View>
-          <Text style={styles.brandName}>{t('appName')}</Text>
-          <Text style={styles.headline}>Choose your language</Text>
+          <Text style={styles.brandName}>{t('common.appName')}</Text>
+          <Text style={styles.headline}>{t('onboarding.chooseLanguage')}</Text>
         </View>
 
         <View style={styles.options}>
           {options.map((option) => {
             const selected = option.code === language;
-
             return (
               <Pressable
                 key={option.code}
@@ -87,10 +86,10 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: theme.colors.textPrimary,
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
     lineHeight: 34,
-    maxWidth: 280,
+    maxWidth: 300,
   },
   options: {
     gap: theme.spacing.md,

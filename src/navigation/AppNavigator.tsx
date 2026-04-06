@@ -5,11 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { AppLanguage, TranslationKey } from '../constants/languages';
 import { theme } from '../theme';
 import type { DemoScenarioKey, ReviewMedicine, UploadMethod, UploadPreviewData } from '../types/intake';
-import type {
-  AdherenceActivityItem,
-  CaregiverAlertState,
-  MedicationItem,
-} from '../types/medication';
+import type { AdherenceActivityItem, CaregiverAlertState, MedicationItem } from '../types/medication';
 import type { MainTabParamList, RootStackParamList } from '../types/navigation';
 import { CaregiverOverviewScreen } from '../screens/CaregiverOverviewScreen';
 import { ExtractionPreviewScreen } from '../screens/ExtractionPreviewScreen';
@@ -30,7 +26,7 @@ type SharedNavigatorProps = {
   setLanguage: (language: AppLanguage) => void;
   completeLanguageSetup: (language: AppLanguage) => void;
   hasCompletedLanguageSetup: boolean;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   selectedUploadMethod: UploadMethod | null;
   reviewMedicines: ReviewMedicine[];
   scheduleMedicines: MedicationItem[];
@@ -100,10 +96,11 @@ function MainTabNavigator(props: SharedNavigatorProps) {
         tabBarIcon: ({ color, size }) => <Feather color={color} name={tabIcons[route.name]} size={size} />,
       })}
     >
-      <Tab.Screen name="HomeTab" options={{ title: 'Home', tabBarLabel: 'Home' }}>
+      <Tab.Screen name="HomeTab" options={{ title: props.t('navigation.home'), tabBarLabel: props.t('navigation.home') }}>
         {(screenProps) => (
           <HomeDashboardScreen
             {...screenProps}
+            language={props.language}
             caregiverAlert={props.caregiverAlert}
             demoScenario={props.demoScenario}
             demoScenarioSummary={props.demoScenarioSummary}
@@ -115,10 +112,11 @@ function MainTabNavigator(props: SharedNavigatorProps) {
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="ScheduleTab" options={{ title: 'Schedule', tabBarLabel: 'Schedule' }}>
+      <Tab.Screen name="ScheduleTab" options={{ title: props.t('navigation.schedule'), tabBarLabel: props.t('navigation.schedule') }}>
         {(screenProps) => (
           <MedicationScheduleScreen
             {...screenProps}
+            language={props.language}
             caregiverAlert={props.caregiverAlert}
             openReminder={props.openReminder}
             scheduleMedicines={props.scheduleMedicines}
@@ -129,10 +127,11 @@ function MainTabNavigator(props: SharedNavigatorProps) {
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="UploadTab" options={{ title: 'Upload', tabBarLabel: 'Upload' }}>
+      <Tab.Screen name="UploadTab" options={{ title: props.t('navigation.upload'), tabBarLabel: props.t('navigation.upload') }}>
         {(screenProps) => (
           <UploadDocumentScreen
             {...screenProps}
+            language={props.language}
             continueWithSampleDocument={props.continueWithSampleDocument}
             selectedUploadMethod={props.selectedUploadMethod}
             selectUploadMethod={props.selectUploadMethod}
@@ -141,10 +140,11 @@ function MainTabNavigator(props: SharedNavigatorProps) {
           />
         )}
       </Tab.Screen>
-      <Tab.Screen name="CaregiverTab" options={{ title: 'Caregiver', tabBarLabel: 'Caregiver' }}>
+      <Tab.Screen name="CaregiverTab" options={{ title: props.t('navigation.caregiver'), tabBarLabel: props.t('navigation.caregiver') }}>
         {(screenProps) => (
           <CaregiverOverviewScreen
             {...screenProps}
+            language={props.language}
             activityHistory={props.activityHistory}
             caregiverAlert={props.caregiverAlert}
             nextReminder={props.nextReminder}
@@ -163,10 +163,7 @@ export function AppNavigator(props: SharedNavigatorProps) {
   return (
     <Stack.Navigator
       initialRouteName={props.hasCompletedLanguageSetup ? 'Welcome' : 'LanguageSelection'}
-      screenOptions={{
-        animation: 'slide_from_right',
-        headerShown: false,
-      }}
+      screenOptions={{ animation: 'slide_from_right', headerShown: false }}
     >
       <Stack.Screen name="LanguageSelection">
         {(screenProps) => (
@@ -190,9 +187,7 @@ export function AppNavigator(props: SharedNavigatorProps) {
           />
         )}
       </Stack.Screen>
-      <Stack.Screen name="AppTabs">
-        {() => <MainTabNavigator {...props} />}
-      </Stack.Screen>
+      <Stack.Screen name="AppTabs">{() => <MainTabNavigator {...props} />}</Stack.Screen>
       <Stack.Screen name="Settings">
         {(screenProps) => (
           <SettingsScreen
@@ -211,9 +206,11 @@ export function AppNavigator(props: SharedNavigatorProps) {
         {(screenProps) => (
           <ExtractionPreviewScreen
             {...screenProps}
+            language={props.language}
             selectedUploadMethod={props.selectedUploadMethod}
             uploadPreview={props.uploadPreview}
             apiNotice={props.apiNotice}
+            t={props.t}
           />
         )}
       </Stack.Screen>
@@ -221,6 +218,7 @@ export function AppNavigator(props: SharedNavigatorProps) {
         {(screenProps) => (
           <ReviewMedicinesScreen
             {...screenProps}
+            language={props.language}
             confirmMedicine={props.confirmMedicine}
             editMedicine={props.editMedicine}
             generateSchedule={props.generateSchedule}
@@ -228,6 +226,7 @@ export function AppNavigator(props: SharedNavigatorProps) {
             resetReviewMedicines={props.resetReviewMedicines}
             reviewMedicines={props.reviewMedicines}
             apiNotice={props.apiNotice}
+            t={props.t}
           />
         )}
       </Stack.Screen>

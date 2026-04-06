@@ -1,17 +1,19 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatInstructionLabel, formatStatusLabel, getTranslation, localizeKnownText, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import type { MedicationItem } from '../types/medication';
 import { PrimaryButton } from './PrimaryButton';
 import { StatusBadge } from './StatusBadge';
 
 type ActiveReminderCardProps = {
+  language: AppLanguage;
   reminder: MedicationItem | null;
   onStart?: () => void;
 };
 
-export function ActiveReminderCard({ reminder, onStart }: ActiveReminderCardProps) {
+export function ActiveReminderCard({ language, reminder, onStart }: ActiveReminderCardProps) {
   const complete = !reminder;
 
   return (
@@ -22,14 +24,14 @@ export function ActiveReminderCard({ reminder, onStart }: ActiveReminderCardProp
         </View>
         <StatusBadge
           icon={complete ? 'shield' : 'clock'}
-          label={complete ? 'Done' : 'Next dose'}
+          label={complete ? getTranslation(language, 'statuses.done') : getTranslation(language, 'home.nextDose')}
           variant={complete ? 'accent' : 'primary'}
         />
       </View>
-      <Text style={styles.title}>{complete ? 'All done' : reminder.name}</Text>
-      <Text style={styles.body}>{complete ? 'No active reminders.' : `${reminder.timing} · ${reminder.dosage}`}</Text>
-      {!complete ? <Text style={styles.helper}>{reminder.foodTiming}</Text> : null}
-      {!complete ? <PrimaryButton icon="play-circle" label="Start" onPress={onStart} /> : null}
+      <Text style={styles.title}>{complete ? getTranslation(language, 'common.done') : reminder.name}</Text>
+      <Text style={styles.body}>{complete ? getTranslation(language, 'common.noActiveReminders') : `${reminder.timing} · ${reminder.dosage}`}</Text>
+      {!complete ? <Text style={styles.helper}>{formatInstructionLabel(language, reminder.foodTiming)}</Text> : null}
+      {!complete ? <PrimaryButton icon="play-circle" label={getTranslation(language, 'common.start')} onPress={onStart} /> : null}
     </View>
   );
 }

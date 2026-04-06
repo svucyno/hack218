@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { formatStatusLabel, formatUploadMethodLabel, getTranslation, localizeKnownText, type AppLanguage, type TranslationKey } from '../constants/languages';
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { DocumentPreviewCard } from '../components/DocumentPreviewCard';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -15,23 +16,18 @@ import type { UploadMethod, UploadPreviewData } from '../types/intake';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type Props = RootStackScreenProps<'ExtractionPreview'> & {
+  language: AppLanguage;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   selectedUploadMethod: UploadMethod | null;
   uploadPreview: UploadPreviewData;
   apiNotice: string | null;
 };
 
-const methodLabelMap: Record<UploadMethod, string> = {
-  camera: 'Photo',
-  image: 'Image',
-  pdf: 'PDF',
-  sample: 'Sample',
-};
-
-export function ExtractionPreviewScreen({ navigation, selectedUploadMethod, uploadPreview, apiNotice }: Props) {
+export function ExtractionPreviewScreen({ navigation, language, t, selectedUploadMethod, uploadPreview, apiNotice }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const reviewCount = uploadPreview.detectedLines.filter((line) => line.clarity === 'review').length;
   const clearCount = uploadPreview.detectedLines.length - reviewCount;
-  const currentLabel = selectedUploadMethod ? methodLabelMap[selectedUploadMethod] : 'Sample';
+  const currentLabel = selectedUploadMethod ? formatUploadMethodLabel(language, selectedUploadMethod) : t('common.sample');
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
@@ -42,8 +38,8 @@ export function ExtractionPreviewScreen({ navigation, selectedUploadMethod, uplo
     return (
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-          <ScreenHeader eyebrow="Review" title="Extracting" subtitle="Reading medicine lines." />
-          <SuccessStateCard title="Scanning" detail="Preparing medicine list." />
+          <ScreenHeader eyebrow={t('extraction.eyebrow')} title={t('extraction.loadingTitle')} subtitle={t('extraction.loadingDetail')} />
+          <SuccessStateCard title={t('common.scanning')} detail={t('extraction.scanningDetail')} />
         </ScrollView>
       </SafeAreaView>
     );
@@ -52,45 +48,31 @@ export function ExtractionPreviewScreen({ navigation, selectedUploadMethod, uplo
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader
-          eyebrow="Review"
-          title="Extraction"
-          subtitle="Check detected lines."
-          helper={<StatusBadge icon="search" label={currentLabel} variant="accent" />}
-        />
+        <ScreenHeader eyebrow={t('extraction.eyebrow')} title={t('extraction.title')} subtitle={t('extraction.subtitle')} helper={<StatusBadge icon="search" label={currentLabel} variant="accent" />} />
 
-        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
-        <SuccessStateCard title="Ready" detail="Review before schedule." />
+        {apiNotice ? <EmptyStateCard title={t('home.usingDemoData')} detail={localizeKnownText(language, apiNotice)} /> : null}
+        <SuccessStateCard title={t('common.ready')} detail={t('extraction.readyDetail')} />
 
-        <DocumentPreviewCard
-          dateLabel={uploadPreview.dateLabel}
-          source={uploadPreview.source}
-          summary={uploadPreview.summary}
-          title={uploadPreview.title}
-        />
+        <DocumentPreviewCard dateLabel={localizeKnownText(language, uploadPreview.dateLabel)} source={uploadPreview.source} summary={localizeKnownText(language, uploadPreview.summary)} title={localizeKnownText(language, uploadPreview.title)} />
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryTop}>
-            <Text style={styles.summaryTitle}>Detected</Text>
+            <Text style={styles.summaryTitle}>{t('extraction.detected')}</Text>
             <Feather color={theme.colors.primary} name="cpu" size={18} />
           </View>
           <View style={styles.badgeRow}>
-            <StatusBadge icon="check-circle" label={`${clearCount} Clear`} variant="accent" />
-            <StatusBadge icon="alert-circle" label={`${reviewCount} Review`} variant="secondary" />
+            <StatusBadge icon="check-circle" label={`${clearCount} ${formatStatusLabel(language, 'clear')}`} variant="accent" />
+            <StatusBadge icon="alert-circle" label={`${reviewCount} ${formatStatusLabel(language, 'review')}`} variant="secondary" />
           </View>
         </View>
 
         <View style={styles.lineList}>
           {uploadPreview.detectedLines.length === 0 ? (
-            <EmptyStateCard detail="No medicine lines found." title="Nothing detected" />
+            <EmptyStateCard detail={t('extraction.nothingDetail')} title={t('extraction.nothingTitle')} />
           ) : (
             uploadPreview.detectedLines.map((line) => (
               <View key={line.id} style={styles.lineCard}>
-                <StatusBadge
-                  icon={line.clarity === 'clear' ? 'check-circle' : 'help-circle'}
-                  label={line.clarity === 'clear' ? 'Clear' : 'Review'}
-                  variant={line.clarity === 'clear' ? 'accent' : 'secondary'}
-                />
+                <StatusBadge icon={line.clarity === 'clear' ? 'check-circle' : 'help-circle'} label={line.clarity === 'clear' ? formatStatusLabel(language, 'clear') : formatStatusLabel(language, 'review')} variant={line.clarity === 'clear' ? 'accent' : 'secondary'} />
                 <Text style={styles.lineText}>{line.text}</Text>
               </View>
             ))
@@ -98,8 +80,8 @@ export function ExtractionPreviewScreen({ navigation, selectedUploadMethod, uplo
         </View>
 
         <View style={styles.footer}>
-          <PrimaryButton icon="arrow-right" label="Review" onPress={() => navigation.navigate('ReviewMedicines')} />
-          <SecondaryButton icon="arrow-left" label="Back" onPress={() => navigation.goBack()} />
+          <PrimaryButton icon="arrow-right" label={t('extraction.reviewAction')} onPress={() => navigation.navigate('ReviewMedicines')} />
+          <SecondaryButton icon="arrow-left" label={t('common.back')} onPress={() => navigation.goBack()} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -107,63 +89,15 @@ export function ExtractionPreviewScreen({ navigation, selectedUploadMethod, uplo
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  screen: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  content: {
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  summaryCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.lg,
-    ...theme.shadows.card,
-  },
-  summaryTop: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  summaryTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.body,
-    fontWeight: '800',
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-  },
-  lineList: {
-    gap: theme.spacing.sm,
-  },
-  lineCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.sm,
-    padding: theme.spacing.md,
-    ...theme.shadows.soft,
-  },
-  lineText: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodySmall,
-    fontWeight: '700',
-    lineHeight: 20,
-  },
-  footer: {
-    gap: theme.spacing.sm,
-  },
+  safeArea: { backgroundColor: theme.colors.background, flex: 1 },
+  screen: { backgroundColor: theme.colors.background, flex: 1 },
+  content: { gap: theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.xl },
+  summaryCard: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radius.lg, borderWidth: 1, gap: theme.spacing.sm, padding: theme.spacing.lg, ...theme.shadows.card },
+  summaryTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  summaryTitle: { color: theme.colors.textPrimary, fontSize: theme.typography.body, fontWeight: '800' },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
+  lineList: { gap: theme.spacing.sm },
+  lineCard: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radius.lg, borderWidth: 1, gap: theme.spacing.sm, padding: theme.spacing.md, ...theme.shadows.soft },
+  lineText: { color: theme.colors.textPrimary, fontSize: theme.typography.bodySmall, fontWeight: '700', lineHeight: 20 },
+  footer: { gap: theme.spacing.sm },
 });

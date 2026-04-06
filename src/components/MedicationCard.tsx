@@ -1,11 +1,13 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatInstructionLabel, formatStatusLabel, localizeKnownText, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import type { MedicationStatus } from '../types/medication';
 import { StatusBadge } from './StatusBadge';
 
 type MedicationCardProps = {
+  language: AppLanguage;
   name: string;
   dosage: string;
   timing: string;
@@ -22,7 +24,7 @@ const statusVariantMap = {
   Missed: { variant: 'neutral', icon: 'alert-circle' },
 } as const;
 
-export function MedicationCard({ name, dosage, timing, foodTiming, note, status, actions }: MedicationCardProps) {
+export function MedicationCard({ language, name, dosage, timing, foodTiming, note, status, actions }: MedicationCardProps) {
   const badge = statusVariantMap[status];
 
   return (
@@ -32,7 +34,7 @@ export function MedicationCard({ name, dosage, timing, foodTiming, note, status,
           <Text numberOfLines={1} style={styles.name}>{name}</Text>
           <Text style={styles.meta}>{dosage}</Text>
         </View>
-        <StatusBadge icon={badge.icon} label={status} variant={badge.variant} />
+        <StatusBadge icon={badge.icon} label={formatStatusLabel(language, status)} variant={badge.variant} />
       </View>
 
       <View style={styles.infoRow}>
@@ -42,11 +44,11 @@ export function MedicationCard({ name, dosage, timing, foodTiming, note, status,
         </View>
         <View style={styles.infoPill}>
           <Feather color={theme.colors.secondary} name="coffee" size={13} />
-          <Text style={styles.infoText}>{foodTiming}</Text>
+          <Text style={styles.infoText}>{formatInstructionLabel(language, foodTiming)}</Text>
         </View>
       </View>
 
-      <Text numberOfLines={1} style={styles.note}>{note}</Text>
+      <Text numberOfLines={2} style={styles.note}>{localizeKnownText(language, note)}</Text>
       {actions ? <View style={styles.actions}>{actions}</View> : null}
     </View>
   );

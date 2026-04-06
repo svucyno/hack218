@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { AppLanguage, TranslationKey } from '../constants/languages';
+import { formatDemoScenarioDetail, formatDemoScenarioSummary, formatDemoScenarioTitle, getTranslation, localizeKnownText, type AppLanguage, type TranslationKey } from '../constants/languages';
 import { DemoScenarioCard } from '../components/DemoScenarioCard';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { ScreenHeader } from '../components/ScreenHeader';
@@ -14,66 +14,55 @@ import type { RootStackScreenProps } from '../types/navigation';
 type Props = RootStackScreenProps<'Settings'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   demoScenario: DemoScenarioKey | null;
   demoScenarioSummary: string;
   applyDemoScenario: (scenario: DemoScenarioKey) => void;
   resetDemoState: () => void;
 };
 
-const scenarios: Array<{ key: DemoScenarioKey; title: string; detail: string }> = [
-  { key: 'smooth', title: 'Smooth', detail: 'Mostly taken' },
-  { key: 'missed', title: 'Missed', detail: 'Caregiver alert' },
-  { key: 'no-response', title: 'No response', detail: 'Unconfirmed dose' },
-  { key: 'escalated', title: 'Escalated', detail: 'Multiple issues' },
-];
+const scenarios: DemoScenarioKey[] = ['smooth', 'missed', 'no-response', 'escalated'];
 
-export function SettingsScreen({
-  language,
-  setLanguage,
-  demoScenario,
-  demoScenarioSummary,
-  applyDemoScenario,
-  resetDemoState,
-}: Props) {
+export function SettingsScreen({ language, setLanguage, t, demoScenario, demoScenarioSummary, applyDemoScenario, resetDemoState }: Props) {
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader eyebrow="Settings" title="Settings" subtitle="Language and demo mode." />
+        <ScreenHeader eyebrow={t('settings.eyebrow')} title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Language</Text>
+          <Text style={styles.cardTitle}>{t('settings.language')}</Text>
           <LanguageToggle value={language} onChange={setLanguage} />
         </View>
 
         <View style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.cardTitle}>Demo mode</Text>
-            <SecondaryButton fullWidth={false} icon="rotate-ccw" label="Reset" onPress={resetDemoState} />
+            <Text style={styles.cardTitle}>{t('settings.demoMode')}</Text>
+            <SecondaryButton fullWidth={false} icon="rotate-ccw" label={t('common.reset')} onPress={resetDemoState} />
           </View>
           <StatusBadge
             icon="play-circle"
-            label={demoScenario ? `Active: ${demoScenario}` : 'No scenario'}
+            label={demoScenario ? t('demo.activeScenario', { name: formatDemoScenarioTitle(language, demoScenario) }) : t('settings.noScenario')}
             variant={demoScenario ? 'primary' : 'accent'}
           />
-          <Text style={styles.helper}>{demoScenarioSummary}</Text>
+          <Text style={styles.helper}>{demoScenario ? formatDemoScenarioSummary(language, demoScenario) : t('demo.chooseScenario')}</Text>
           <View style={styles.scenarioGrid}>
             {scenarios.map((scenario) => (
               <DemoScenarioCard
-                key={scenario.key}
-                detail={scenario.detail}
+                key={scenario}
+                language={language}
+                detail={formatDemoScenarioDetail(language, scenario)}
                 onPress={applyDemoScenario}
-                scenario={scenario.key}
-                selected={demoScenario === scenario.key}
-                title={scenario.title}
+                scenario={scenario}
+                selected={demoScenario === scenario}
+                title={formatDemoScenarioTitle(language, scenario)}
               />
             ))}
           </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>MedBridge</Text>
-          <Text style={styles.helper}>Mock demo build</Text>
+          <Text style={styles.cardTitle}>{t('settings.appInfoTitle')}</Text>
+          <Text style={styles.helper}>{t('settings.appInfoDetail')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

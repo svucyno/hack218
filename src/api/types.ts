@@ -18,7 +18,13 @@ export type ReviewMedicinePayload = {
   confirmed: boolean;
   removed: boolean;
   edited: boolean;
-  warnings: Array<'missing-dosage' | 'unclear-timing' | 'possible-duplicate'>;
+  warnings: Array<
+    | 'missing-dosage'
+    | 'unclear-timing'
+    | 'possible-duplicate'
+    | 'possible-prn-instruction'
+    | 'low-clarity-line'
+  >;
 };
 
 export type NormalizedMedicineApi = {

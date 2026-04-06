@@ -1,18 +1,20 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import { StatusBadge } from './StatusBadge';
 
 type ScenarioBannerProps = {
+  language: AppLanguage;
   title: string;
   detail: string;
   active?: boolean;
 };
 
-export function ScenarioBanner({ title, detail, active = true }: ScenarioBannerProps) {
+export function ScenarioBanner({ language, title, detail, active = true }: ScenarioBannerProps) {
   return (
     <View style={[styles.card, active && styles.cardActive]}>
-      <StatusBadge icon="play-circle" label={active ? 'Demo mode active' : 'Demo mode ready'} variant={active ? 'primary' : 'accent'} />
+      <StatusBadge icon="play-circle" label={active ? getTranslation(language, 'demo.active') : getTranslation(language, 'demo.ready')} variant={active ? 'primary' : 'accent'} />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.detail}>{detail}</Text>
     </View>

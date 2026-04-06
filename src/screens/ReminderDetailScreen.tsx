@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { AppLanguage, TranslationKey } from '../constants/languages';
+import { formatInstructionLabel, formatLanguageName, getTranslation, localizeKnownText, type AppLanguage, type TranslationKey } from '../constants/languages';
 import { EmptyStateCard } from '../components/EmptyStateCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ReminderActionPanel } from '../components/ReminderActionPanel';
@@ -18,7 +18,7 @@ import type { RootStackScreenProps } from '../types/navigation';
 type Props = RootStackScreenProps<'ReminderDetail'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   activeReminder: MedicationItem | null;
   closeReminder: () => void;
   replayReminderVoice: () => void;
@@ -26,17 +26,17 @@ type Props = RootStackScreenProps<'ReminderDetail'> & {
   respondToReminder: (status: 'Taken' | 'Missed' | 'Unconfirmed') => void;
 };
 
-export function ReminderDetailScreen({ navigation, language, activeReminder, closeReminder, replayReminderVoice, remindAgain, respondToReminder }: Props) {
+export function ReminderDetailScreen({ navigation, language, t, activeReminder, closeReminder, replayReminderVoice, remindAgain, respondToReminder }: Props) {
   const [feedback, setFeedback] = useState<string | null>(null);
-  const languageLabel = language === 'te' ? 'Telugu' : 'English';
+  const languageLabel = formatLanguageName(language, language);
 
   if (!activeReminder) {
     return (
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-          <ScreenHeader eyebrow="Reminder" title="No reminder" subtitle="Nothing active now." />
-          <EmptyStateCard detail="All active doses have been handled." icon="check-circle" title="Done" />
-          <PrimaryButton icon="arrow-left" label="Home" onPress={() => navigation.navigate('AppTabs', { screen: 'HomeTab' })} />
+          <ScreenHeader eyebrow={t('reminder.eyebrow')} title={t('reminder.emptyTitle')} subtitle={t('reminder.emptySubtitle')} />
+          <EmptyStateCard detail={t('reminder.emptyDetail')} icon="check-circle" title={t('common.done')} />
+          <PrimaryButton icon="arrow-left" label={t('common.home')} onPress={() => navigation.navigate('AppTabs', { screen: 'HomeTab' })} />
         </ScrollView>
       </SafeAreaView>
     );
@@ -45,73 +45,45 @@ export function ReminderDetailScreen({ navigation, language, activeReminder, clo
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader
-          eyebrow="Reminder"
-          title="Medicine time"
-          subtitle="Choose one action."
-          helper={<StatusBadge icon="volume-2" label={languageLabel} variant="accent" />}
-        />
+        <ScreenHeader eyebrow={t('reminder.eyebrow')} title={t('reminder.title')} subtitle={t('reminder.subtitle')} helper={<StatusBadge icon="volume-2" label={languageLabel} variant="accent" />} />
 
-        {feedback ? <SuccessStateCard detail={feedback} title="Updated" /> : null}
+        {feedback ? <SuccessStateCard detail={feedback} title={t('common.updated')} /> : null}
 
-        <VoicePromptIndicator languageLabel={languageLabel} />
+        <VoicePromptIndicator language={language} languageLabel={languageLabel} />
+        <StatusBadge icon="clock" label={`${activeReminder.timing} · ${formatInstructionLabel(language, activeReminder.foodTiming)}`} variant="neutral" />
 
         <ReminderActionPanel
+          language={language}
           onMissed={() => {
-            setFeedback('Dose marked missed.');
+            setFeedback(t('reminder.missedFeedback'));
             respondToReminder('Missed');
             setTimeout(() => navigation.goBack(), 350);
           }}
           onNoResponse={() => {
-            setFeedback('Dose marked unconfirmed.');
+            setFeedback(t('reminder.unconfirmedFeedback'));
             respondToReminder('Unconfirmed');
             setTimeout(() => navigation.goBack(), 350);
           }}
           onRemindAgain={() => {
             remindAgain();
-            setFeedback('Reminder will repeat.');
+            setFeedback(t('reminder.repeatFeedback'));
           }}
           onTaken={() => {
-            setFeedback('Dose marked taken.');
+            setFeedback(t('reminder.takenFeedback'));
             respondToReminder('Taken');
             setTimeout(() => navigation.goBack(), 350);
           }}
         />
 
-        <SecondaryButton
-          icon="volume-2"
-          label="Play again"
-          onPress={() => {
-            replayReminderVoice();
-            setFeedback('Voice replayed.');
-          }}
-        />
-        <SecondaryButton
-          icon="x"
-          label="Close"
-          onPress={() => {
-            closeReminder();
-            navigation.goBack();
-          }}
-        />
+        <SecondaryButton icon="volume-2" label={t('reminder.playAgain')} onPress={() => { replayReminderVoice(); setFeedback(t('reminder.voiceReplayed')); }} />
+        <SecondaryButton icon="x" label={t('common.close')} onPress={() => { closeReminder(); navigation.goBack(); }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  screen: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  content: {
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
+  safeArea: { backgroundColor: theme.colors.background, flex: 1 },
+  screen: { backgroundColor: theme.colors.background, flex: 1 },
+  content: { gap: theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.xl },
 });

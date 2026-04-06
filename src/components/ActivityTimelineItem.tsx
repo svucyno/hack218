@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { localizeKnownText, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import type { AdherenceActivityItem } from '../types/medication';
 
@@ -14,10 +15,11 @@ const iconMap: Record<AdherenceActivityItem['type'], 'check-circle' | 'alert-cir
 };
 
 type ActivityTimelineItemProps = {
+  language: AppLanguage;
   item: AdherenceActivityItem;
 };
 
-export function ActivityTimelineItem({ item }: ActivityTimelineItemProps) {
+export function ActivityTimelineItem({ language, item }: ActivityTimelineItemProps) {
   return (
     <View style={styles.row}>
       <View style={styles.iconWrap}>
@@ -25,10 +27,10 @@ export function ActivityTimelineItem({ item }: ActivityTimelineItemProps) {
       </View>
       <View style={styles.copy}>
         <View style={styles.topRow}>
-          <Text numberOfLines={1} style={styles.title}>{item.title}</Text>
+          <Text numberOfLines={1} style={styles.title}>{localizeKnownText(language, item.title)}</Text>
           <Text style={styles.time}>{item.timeLabel}</Text>
         </View>
-        <Text numberOfLines={1} style={styles.detail}>{item.detail}</Text>
+        <Text numberOfLines={2} style={styles.detail}>{localizeKnownText(language, item.detail)}</Text>
       </View>
     </View>
   );

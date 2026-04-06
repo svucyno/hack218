@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatInstructionLabel, formatWarningLabel, getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import type { ReviewMedicine } from '../types/intake';
 import { PrimaryButton } from './PrimaryButton';
@@ -8,64 +9,65 @@ import { StatusBadge } from './StatusBadge';
 import { WarningTag } from './WarningTag';
 
 type ReviewMedicineCardProps = {
+  language: AppLanguage;
   medicine: ReviewMedicine;
   onConfirm?: () => void;
   onEdit?: () => void;
   onRemove?: () => void;
 };
 
-export function ReviewMedicineCard({ medicine, onConfirm, onEdit, onRemove }: ReviewMedicineCardProps) {
+export function ReviewMedicineCard({ language, medicine, onConfirm, onEdit, onRemove }: ReviewMedicineCardProps) {
   return (
     <View style={[styles.card, medicine.confirmed && styles.cardConfirmed]}>
       <View style={styles.headerRow}>
         <View style={styles.headerCopy}>
           <Text style={styles.title}>{medicine.name}</Text>
-          <Text style={styles.subtitle}>{medicine.frequency}</Text>
+          <Text style={styles.subtitle}>{formatInstructionLabel(language, medicine.frequency)}</Text>
         </View>
         <StatusBadge
           icon={medicine.confirmed ? 'check-circle' : 'help-circle'}
-          label={medicine.confirmed ? 'Confirmed' : 'Needs review'}
+          label={medicine.confirmed ? getTranslation(language, 'review.confirmed') : getTranslation(language, 'review.needsReview')}
           variant={medicine.confirmed ? 'accent' : 'secondary'}
         />
       </View>
 
       <View style={styles.fieldGrid}>
         <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Dosage</Text>
-          <Text style={styles.fieldValue}>{medicine.dosage || 'Missing dosage'}</Text>
+          <Text style={styles.fieldLabel}>{getTranslation(language, 'review.dosage')}</Text>
+          <Text style={styles.fieldValue}>{medicine.dosage || getTranslation(language, 'review.missingDosage')}</Text>
         </View>
         <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Timing</Text>
-          <Text style={styles.fieldValue}>{medicine.timing || 'Timing unclear'}</Text>
+          <Text style={styles.fieldLabel}>{getTranslation(language, 'review.timing')}</Text>
+          <Text style={styles.fieldValue}>{medicine.timing || getTranslation(language, 'review.timingUnclear')}</Text>
         </View>
         <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Duration</Text>
-          <Text style={styles.fieldValue}>{medicine.duration}</Text>
+          <Text style={styles.fieldLabel}>{getTranslation(language, 'review.duration')}</Text>
+          <Text style={styles.fieldValue}>{formatInstructionLabel(language, medicine.duration)}</Text>
         </View>
         <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Food</Text>
-          <Text style={styles.fieldValue}>{medicine.foodTiming}</Text>
+          <Text style={styles.fieldLabel}>{getTranslation(language, 'review.food')}</Text>
+          <Text style={styles.fieldValue}>{formatInstructionLabel(language, medicine.foodTiming)}</Text>
         </View>
       </View>
 
       {medicine.warnings.length > 0 ? (
         <View style={styles.warningRow}>
           {medicine.warnings.map((warning) => (
-            <WarningTag key={warning} warning={warning} />
+            <WarningTag key={warning} language={language} warning={warning} />
           ))}
         </View>
       ) : null}
 
-      {medicine.edited ? <Text style={styles.editedNote}>Edited locally for demo review.</Text> : null}
+      {medicine.edited ? <Text style={styles.editedNote}>{getTranslation(language, 'review.editedNote')}</Text> : null}
 
       <View style={styles.actionsColumn}>
-        <PrimaryButton icon="check" label="Confirm" onPress={onConfirm} />
+        <PrimaryButton icon="check" label={getTranslation(language, 'review.confirm')} onPress={onConfirm} />
         <View style={styles.secondaryRow}>
           <View style={styles.flexButton}>
-            <SecondaryButton icon="edit-2" label="Edit" onPress={onEdit} />
+            <SecondaryButton icon="edit-2" label={getTranslation(language, 'review.edit')} onPress={onEdit} />
           </View>
           <View style={styles.flexButton}>
-            <SecondaryButton icon="trash-2" label="Remove" onPress={onRemove} />
+            <SecondaryButton icon="trash-2" label={getTranslation(language, 'review.remove')} onPress={onRemove} />
           </View>
         </View>
       </View>

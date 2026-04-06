@@ -1,10 +1,12 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatStatusLabel, getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import { StatusBadge } from './StatusBadge';
 
 type AdherenceSummaryCardProps = {
+  language: AppLanguage;
   taken: number;
   total: number;
   pending: number;
@@ -12,18 +14,18 @@ type AdherenceSummaryCardProps = {
   adherencePercent: number;
 };
 
-export function AdherenceSummaryCard({ taken, total, pending, missed, adherencePercent }: AdherenceSummaryCardProps) {
+export function AdherenceSummaryCard({ language, taken, total, pending, missed, adherencePercent }: AdherenceSummaryCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.label}>Adherence</Text>
+        <Text style={styles.label}>{getTranslation(language, 'home.adherence')}</Text>
         <Feather color={theme.colors.primary} name="activity" size={18} />
       </View>
       <Text style={styles.percent}>{`${adherencePercent}%`}</Text>
-      <Text style={styles.body}>{`${taken}/${total} taken`}</Text>
+      <Text style={styles.body}>{`${taken}/${total} ${formatStatusLabel(language, 'taken').toLowerCase()}`}</Text>
       <View style={styles.badges}>
-        <StatusBadge icon="clock" label={`${pending} Pending`} variant="primary" />
-        <StatusBadge icon="alert-circle" label={`${missed} Missed`} variant="neutral" />
+        <StatusBadge icon="clock" label={`${pending} ${formatStatusLabel(language, 'pending')}`} variant="primary" />
+        <StatusBadge icon="alert-circle" label={`${missed} ${formatStatusLabel(language, 'missed')}`} variant="neutral" />
       </View>
     </View>
   );

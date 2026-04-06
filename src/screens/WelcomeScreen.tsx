@@ -11,7 +11,7 @@ import type { RootStackScreenProps } from '../types/navigation';
 type Props = RootStackScreenProps<'Welcome'> & {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   applyDemoScenario: (scenario: DemoScenarioKey) => void;
 };
 
@@ -23,12 +23,12 @@ export function WelcomeScreen({ navigation, t }: Props) {
           <View style={styles.logoWrap}>
             <Feather color={theme.colors.surface} name="heart" size={22} />
           </View>
-          <Text style={styles.brandName}>{t('appName')}</Text>
-          <Text style={styles.headline}>Simple medicine support</Text>
-          <Text style={styles.supportingText}>Reminders, schedule, caregiver view.</Text>
+          <Text style={styles.brandName}>{t('common.appName')}</Text>
+          <Text style={styles.headline}>{t('onboarding.welcomeHeadline')}</Text>
+          <Text style={styles.supportingText}>{t('onboarding.welcomeSupport')}</Text>
         </View>
 
-        <PrimaryButton icon="arrow-right" label={t('getStarted')} onPress={() => navigation.replace('AppTabs')} />
+        <PrimaryButton icon="arrow-right" label={t('common.getStarted')} onPress={() => navigation.replace('AppTabs')} />
       </View>
     </SafeAreaView>
   );
@@ -66,15 +66,15 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: theme.colors.textPrimary,
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
     lineHeight: 34,
-    maxWidth: 280,
+    maxWidth: 290,
   },
   supportingText: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.body,
     lineHeight: 22,
-    maxWidth: 260,
+    maxWidth: 280,
   },
 });

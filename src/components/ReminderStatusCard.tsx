@@ -1,28 +1,30 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatInstructionLabel, formatStatusLabel, getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import type { MedicationItem } from '../types/medication';
 import { StatusBadge } from './StatusBadge';
 
 type ReminderStatusCardProps = {
+  language: AppLanguage;
   nextReminder: MedicationItem | null;
 };
 
-export function ReminderStatusCard({ nextReminder }: ReminderStatusCardProps) {
+export function ReminderStatusCard({ language, nextReminder }: ReminderStatusCardProps) {
   const isComplete = !nextReminder;
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.label}>Next dose</Text>
+        <Text style={styles.label}>{getTranslation(language, 'home.nextDose')}</Text>
         <Feather color={theme.colors.primary} name={isComplete ? 'check-circle' : 'clock'} size={18} />
       </View>
-      <Text style={styles.title}>{isComplete ? 'Done today' : nextReminder.name}</Text>
-      <Text style={styles.body}>{isComplete ? 'No pending doses.' : `${nextReminder.timing} · ${nextReminder.foodTiming}`}</Text>
+      <Text style={styles.title}>{isComplete ? getTranslation(language, 'common.done') : nextReminder.name}</Text>
+      <Text style={styles.body}>{isComplete ? getTranslation(language, 'common.noPendingDoses') : `${nextReminder.timing} · ${formatInstructionLabel(language, nextReminder.foodTiming)}`}</Text>
       <StatusBadge
         icon={isComplete ? 'check-circle' : nextReminder.status === 'Pending' ? 'clock' : 'help-circle'}
-        label={isComplete ? 'Done' : nextReminder.status}
+        label={isComplete ? formatStatusLabel(language, 'done') : formatStatusLabel(language, nextReminder.status)}
         variant={isComplete ? 'accent' : nextReminder.status === 'Pending' ? 'primary' : 'secondary'}
       />
     </View>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { TranslationKey } from '../constants/languages';
+import { formatInstructionLabel, formatPeriodLabel, formatStatusLabel, getTranslation, localizeKnownText, type AppLanguage, type TranslationKey } from '../constants/languages';
 import { CaregiverAlertCard } from '../components/CaregiverAlertCard';
 import { DoseActionRow } from '../components/DoseActionRow';
 import { EmptyStateCard } from '../components/EmptyStateCard';
@@ -17,25 +17,19 @@ import type { CaregiverAlertState, MedicationItem, MedicationPeriod } from '../t
 import type { AppTabScreenProps } from '../types/navigation';
 
 type Props = AppTabScreenProps<'ScheduleTab'> & {
-  t: (key: TranslationKey) => string;
+  language: AppLanguage;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   scheduleMedicines: MedicationItem[];
   caregiverAlert: CaregiverAlertState;
   apiNotice: string | null;
-  stats: {
-    total: number;
-    taken: number;
-    missed: number;
-    unconfirmed: number;
-    pending: number;
-    adherencePercent: number;
-  };
+  stats: { total: number; taken: number; missed: number; unconfirmed: number; pending: number; adherencePercent: number };
   updateDoseStatus: (id: string, status: MedicationItem['status']) => Promise<void>;
   openReminder: (id?: string) => void;
 };
 
 const periods: MedicationPeriod[] = ['Morning', 'Afternoon', 'Night'];
 
-export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregiverAlert, stats, updateDoseStatus, openReminder, apiNotice }: Props) {
+export function MedicationScheduleScreen({ navigation, language, t, scheduleMedicines, caregiverAlert, stats, updateDoseStatus, openReminder, apiNotice }: Props) {
   const [isLaunchingReminder, setIsLaunchingReminder] = useState(false);
   const allHandled = stats.pending === 0 && stats.unconfirmed === 0;
 
@@ -51,69 +45,54 @@ export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregi
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <ScreenHeader
-          eyebrow="Schedule"
-          title="Schedule"
-          subtitle="Morning, afternoon, night."
-          rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />}
-        />
+        <ScreenHeader eyebrow={t('schedule.eyebrow')} title={t('schedule.title')} subtitle={t('schedule.subtitle')} rightAction={<HeaderIconButton icon="settings" onPress={() => navigation.navigate('Settings')} />} />
 
-        {apiNotice ? <EmptyStateCard title="Using demo data" detail={apiNotice} /> : null}
-        {isLaunchingReminder ? <SuccessStateCard title="Opening" detail="Starting reminder." /> : null}
+        {apiNotice ? <EmptyStateCard title={t('home.usingDemoData')} detail={localizeKnownText(language, apiNotice)} /> : null}
+        {isLaunchingReminder ? <SuccessStateCard title={t('common.opening')} detail={t('schedule.openingReminder')} /> : null}
 
         <View style={styles.summaryCard}>
           <View style={styles.summaryBadges}>
-            <StatusBadge icon="check-circle" label={`${stats.taken} Taken`} variant="accent" />
-            <StatusBadge icon="clock" label={`${stats.pending} Pending`} variant="primary" />
-            <StatusBadge icon="help-circle" label={`${stats.unconfirmed} Unconfirmed`} variant="secondary" />
-            <StatusBadge icon="alert-circle" label={`${stats.missed} Missed`} variant="neutral" />
+            <StatusBadge icon="check-circle" label={`${stats.taken} ${formatStatusLabel(language, 'taken')}`} variant="accent" />
+            <StatusBadge icon="clock" label={`${stats.pending} ${formatStatusLabel(language, 'pending')}`} variant="primary" />
+            <StatusBadge icon="help-circle" label={`${stats.unconfirmed} ${formatStatusLabel(language, 'unconfirmed')}`} variant="secondary" />
+            <StatusBadge icon="alert-circle" label={`${stats.missed} ${formatStatusLabel(language, 'missed')}`} variant="neutral" />
           </View>
-          <PrimaryButton icon="bell" label="Next dose" onPress={() => launchReminder()} />
+          <PrimaryButton icon="bell" label={t('schedule.nextDose')} onPress={() => launchReminder()} />
         </View>
 
-        {allHandled ? <EmptyStateCard detail="All medicines handled." icon="check-circle" title="Done" /> : null}
-        {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} /> : null}
+        {allHandled ? <EmptyStateCard detail={t('schedule.doneDetail')} icon="check-circle" title={t('schedule.doneTitle')} /> : null}
+        {caregiverAlert.active ? <CaregiverAlertCard alert={caregiverAlert} language={language} /> : null}
 
         {periods.map((period) => {
           const items = scheduleMedicines.filter((item) => item.period === period);
-          if (items.length === 0) {
-            return null;
-          }
+          if (items.length === 0) return null;
+
+          const hasPending = items.some((item) => item.status === 'Pending');
 
           return (
             <View key={period} style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{period}</Text>
-                <StatusBadge
-                  icon="clock"
-                  label={items.some((item) => item.status === 'Pending') ? 'Pending' : 'Updated'}
-                  variant={items.some((item) => item.status === 'Pending') ? 'primary' : 'accent'}
-                />
+                <Text style={styles.sectionTitle}>{formatPeriodLabel(language, period)}</Text>
+                <StatusBadge icon="clock" label={hasPending ? formatStatusLabel(language, 'pending') : t('schedule.updated')} variant={hasPending ? 'primary' : 'accent'} />
               </View>
 
               <View style={styles.list}>
                 {items.map((item) => (
                   <MedicationCard
                     key={item.id}
+                    actions={
+                      <View style={styles.cardActions}>
+                        {(item.status === 'Pending' || item.status === 'Unconfirmed') ? <PrimaryButton icon="bell" label={t('schedule.reminder')} onPress={() => launchReminder(item.id)} /> : null}
+                        <DoseActionRow language={language} onMissed={() => void updateDoseStatus(item.id, 'Missed')} onTaken={() => void updateDoseStatus(item.id, 'Taken')} onUnconfirmed={() => void updateDoseStatus(item.id, 'Unconfirmed')} status={item.status} />
+                      </View>
+                    }
                     dosage={item.dosage}
                     foodTiming={item.foodTiming}
+                    language={language}
                     name={item.name}
                     note={item.note}
                     status={item.status}
                     timing={item.timing}
-                    actions={
-                      <View style={styles.cardActions}>
-                        {(item.status === 'Pending' || item.status === 'Unconfirmed') ? (
-                          <PrimaryButton icon="bell" label="Reminder" onPress={() => launchReminder(item.id)} />
-                        ) : null}
-                        <DoseActionRow
-                          onMissed={() => void updateDoseStatus(item.id, 'Missed')}
-                          onTaken={() => void updateDoseStatus(item.id, 'Taken')}
-                          onUnconfirmed={() => void updateDoseStatus(item.id, 'Unconfirmed')}
-                          status={item.status}
-                        />
-                      </View>
-                    }
                   />
                 ))}
               </View>
@@ -126,53 +105,14 @@ export function MedicationScheduleScreen({ navigation, scheduleMedicines, caregi
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  screen: {
-    backgroundColor: theme.colors.background,
-    flex: 1,
-  },
-  content: {
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-  },
-  summaryCard: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg,
-    ...theme.shadows.card,
-  },
-  summaryBadges: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
-  },
-  section: {
-    gap: theme.spacing.sm,
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    justifyContent: 'space-between',
-  },
-  sectionTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.typography.bodyLarge,
-    fontWeight: '800',
-    lineHeight: 24,
-  },
-  list: {
-    gap: theme.spacing.sm,
-  },
-  cardActions: {
-    gap: theme.spacing.sm,
-  },
+  safeArea: { backgroundColor: theme.colors.background, flex: 1 },
+  screen: { backgroundColor: theme.colors.background, flex: 1 },
+  content: { gap: theme.spacing.md, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.md, paddingBottom: theme.spacing.xl },
+  summaryCard: { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderRadius: theme.radius.lg, borderWidth: 1, gap: theme.spacing.md, padding: theme.spacing.lg, ...theme.shadows.card },
+  summaryBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm },
+  section: { gap: theme.spacing.sm },
+  sectionHeader: { alignItems: 'center', flexDirection: 'row', gap: theme.spacing.md, justifyContent: 'space-between' },
+  sectionTitle: { color: theme.colors.textPrimary, fontSize: theme.typography.bodyLarge, fontWeight: '800', lineHeight: 24 },
+  list: { gap: theme.spacing.sm },
+  cardActions: { gap: theme.spacing.sm },
 });

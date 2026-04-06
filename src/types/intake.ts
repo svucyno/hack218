@@ -8,7 +8,12 @@ export type ExtractionLine = {
   note?: string;
 };
 
-export type ReviewWarning = 'missing-dosage' | 'unclear-timing' | 'possible-duplicate';
+export type ReviewWarning =
+  | 'missing-dosage'
+  | 'unclear-timing'
+  | 'possible-duplicate'
+  | 'possible-prn-instruction'
+  | 'low-clarity-line';
 
 export type ReviewMedicine = {
   id: string;

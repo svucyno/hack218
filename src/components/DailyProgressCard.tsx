@@ -1,17 +1,19 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { formatStatusLabel, getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 import { StatusBadge } from './StatusBadge';
 
 type DailyProgressCardProps = {
+  language: AppLanguage;
   taken: number;
   total: number;
   missed: number;
   unconfirmed: number;
 };
 
-export function DailyProgressCard({ taken, total, missed, unconfirmed }: DailyProgressCardProps) {
+export function DailyProgressCard({ language, taken, total, missed, unconfirmed }: DailyProgressCardProps) {
   const safeTotal = Math.max(total, 1);
   const takenFlex = Math.max(taken, 0.5);
   const unconfirmedFlex = Math.max(unconfirmed, 0.5);
@@ -22,7 +24,7 @@ export function DailyProgressCard({ taken, total, missed, unconfirmed }: DailyPr
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>Progress</Text>
+        <Text style={styles.title}>{getTranslation(language, 'home.adherence')}</Text>
         <Feather color={theme.colors.primary} name="bar-chart-2" size={18} />
       </View>
       <View style={styles.barRow}>
@@ -32,9 +34,9 @@ export function DailyProgressCard({ taken, total, missed, unconfirmed }: DailyPr
         <View style={[styles.segment, styles.segmentPending, { flex: remainingFlex / safeTotal }]} />
       </View>
       <View style={styles.badgeRow}>
-        <StatusBadge icon="check-circle" label={`${taken} Taken`} variant="accent" />
-        <StatusBadge icon="help-circle" label={`${unconfirmed} Unconfirmed`} variant="secondary" />
-        <StatusBadge icon="alert-circle" label={`${missed} Missed`} variant="neutral" />
+        <StatusBadge icon="check-circle" label={`${taken} ${formatStatusLabel(language, 'taken')}`} variant="accent" />
+        <StatusBadge icon="help-circle" label={`${unconfirmed} ${formatStatusLabel(language, 'unconfirmed')}`} variant="secondary" />
+        <StatusBadge icon="alert-circle" label={`${missed} ${formatStatusLabel(language, 'missed')}`} variant="neutral" />
       </View>
     </View>
   );

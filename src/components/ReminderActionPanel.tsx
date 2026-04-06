@@ -1,23 +1,25 @@
 import { StyleSheet, View } from 'react-native';
 
+import { getTranslation, type AppLanguage } from '../constants/languages';
 import { PrimaryButton } from './PrimaryButton';
 import { SecondaryButton } from './SecondaryButton';
 import { theme } from '../theme';
 
 type ReminderActionPanelProps = {
+  language: AppLanguage;
   onTaken: () => void;
   onMissed: () => void;
   onRemindAgain: () => void;
   onNoResponse: () => void;
 };
 
-export function ReminderActionPanel({ onTaken, onMissed, onRemindAgain, onNoResponse }: ReminderActionPanelProps) {
+export function ReminderActionPanel({ language, onTaken, onMissed, onRemindAgain, onNoResponse }: ReminderActionPanelProps) {
   return (
     <View style={styles.container}>
-      <PrimaryButton icon="check" label="Taken" onPress={onTaken} />
-      <SecondaryButton icon="x-circle" label="Missed" onPress={onMissed} />
-      <SecondaryButton icon="rotate-ccw" label="Remind me again" onPress={onRemindAgain} />
-      <SecondaryButton icon="help-circle" label="No response" onPress={onNoResponse} />
+      <PrimaryButton icon="check" label={getTranslation(language, 'statuses.taken')} onPress={onTaken} />
+      <SecondaryButton icon="x-circle" label={getTranslation(language, 'statuses.missed')} onPress={onMissed} />
+      <SecondaryButton icon="rotate-ccw" label={getTranslation(language, 'reminder.remindAgain')} onPress={onRemindAgain} />
+      <SecondaryButton icon="help-circle" label={getTranslation(language, 'reminder.noResponse')} onPress={onNoResponse} />
     </View>
   );
 }

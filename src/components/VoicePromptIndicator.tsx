@@ -1,21 +1,23 @@
 import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { getTranslation, type AppLanguage } from '../constants/languages';
 import { theme } from '../theme';
 
 type VoicePromptIndicatorProps = {
+  language: AppLanguage;
   languageLabel: string;
 };
 
-export function VoicePromptIndicator({ languageLabel }: VoicePromptIndicatorProps) {
+export function VoicePromptIndicator({ language, languageLabel }: VoicePromptIndicatorProps) {
   return (
     <View style={styles.card}>
       <View style={styles.iconWrap}>
         <Feather color={theme.colors.primary} name="volume-2" size={20} />
       </View>
       <View style={styles.copy}>
-        <Text style={styles.title}>Playing voice reminder</Text>
-        <Text style={styles.detail}>{languageLabel} voice prompt simulation active</Text>
+        <Text style={styles.title}>{getTranslation(language, 'reminder.voiceTitle')}</Text>
+        <Text style={styles.detail}>{getTranslation(language, 'reminder.voiceDetail', { language: languageLabel })}</Text>
       </View>
     </View>
   );
