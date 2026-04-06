@@ -1,3 +1,23 @@
+export type UploadMedicineCandidateApi = {
+  candidate_id: string;
+  raw_line: string;
+  name: string;
+  dosage: string;
+  frequency: string;
+  timing: string;
+  duration: string;
+  food_timing: string;
+  warnings: Array<
+    | 'missing-dosage'
+    | 'unclear-timing'
+    | 'possible-duplicate'
+    | 'possible-prn-instruction'
+    | 'low-clarity-line'
+    | string
+  >;
+  clarity: 'clear' | 'review' | 'low' | string;
+};
+
 export type UploadApiResponse = {
   document_id: string;
   filename: string;
@@ -5,6 +25,7 @@ export type UploadApiResponse = {
   extracted_text: string;
   detected_lines: string[];
   warnings: string[];
+  medicine_candidates: UploadMedicineCandidateApi[];
 };
 
 export type ReviewMedicinePayload = {
@@ -40,6 +61,7 @@ export type NormalizedMedicineApi = {
 
 export type ReviewApiResponse = {
   review_id: string;
+  document_id?: string | null;
   medicines: NormalizedMedicineApi[];
   warnings: string[];
 };
@@ -68,6 +90,8 @@ export type AdherenceSummaryApi = {
 
 export type ScheduleApiResponse = {
   schedule_id: string;
+  document_id?: string | null;
+  review_id?: string | null;
   groups: {
     morning: ScheduleDoseApi[];
     afternoon: ScheduleDoseApi[];

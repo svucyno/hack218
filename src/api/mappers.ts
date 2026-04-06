@@ -8,7 +8,7 @@ import type {
   ScheduleDoseApi,
   UploadApiResponse,
 } from './types';
-import type { ExtractionLine, ReviewMedicine, UploadPreviewData } from '../types/intake';
+import type { ExtractionLine, ReviewMedicine, ReviewWarning, UploadPreviewData } from '../types/intake';
 import type { AdherenceActivityItem, CaregiverAlertState, MedicationItem, MedicationStatus } from '../types/medication';
 
 function titleCaseWords(value: string): string {
@@ -44,6 +44,19 @@ function mapPeriod(period: ScheduleDoseApi['period']): MedicationItem['period'] 
   }
 }
 
+function mapWarning(value: string): ReviewWarning | null {
+  switch (value) {
+    case 'missing-dosage':
+    case 'unclear-timing':
+    case 'possible-duplicate':
+    case 'possible-prn-instruction':
+    case 'low-clarity-line':
+      return value;
+    default:
+      return null;
+  }
+}
+
 export function mapUploadResponseToPreview(response: UploadApiResponse): UploadPreviewData {
   const detectedLines: ExtractionLine[] = response.detected_lines.map((text, index) => ({
     id: `${response.document_id}-line-${index + 1}`,
@@ -63,6 +76,22 @@ export function mapUploadResponseToPreview(response: UploadApiResponse): UploadP
     dateLabel: 'Uploaded now',
     summary: `${response.detected_lines.length} detected lines ready for review.`,
   };
+}
+
+export function mapUploadResponseToReviewMedicines(response: UploadApiResponse): ReviewMedicine[] {
+  return response.medicine_candidates.map((candidate) => ({
+    id: candidate.candidate_id,
+    name: candidate.name || candidate.raw_line,
+    dosage: candidate.dosage || '',
+    frequency: candidate.frequency ? titleCaseWords(candidate.frequency) : 'As directed',
+    timing: candidate.timing ? titleCaseWords(candidate.timing).replace(/ And /g, ' and ') : '',
+    duration: candidate.duration ? titleCaseWords(candidate.duration) : 'Continue daily',
+    foodTiming: candidate.food_timing ? titleCaseWords(candidate.food_timing) : 'As directed',
+    confirmed: candidate.clarity === 'clear' && candidate.warnings.length === 0,
+    removed: false,
+    edited: false,
+    warnings: candidate.warnings.map(mapWarning).filter((warning): warning is ReviewWarning => warning !== null),
+  }));
 }
 
 export function mapReviewResponseToReviewMedicines(response: ReviewApiResponse): ReviewMedicine[] {

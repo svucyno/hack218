@@ -28,6 +28,7 @@ type SharedNavigatorProps = {
   hasCompletedLanguageSetup: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   selectedUploadMethod: UploadMethod | null;
+  hasUploadedDocument: boolean;
   reviewMedicines: ReviewMedicine[];
   scheduleMedicines: MedicationItem[];
   activityHistory: AdherenceActivityItem[];
@@ -133,6 +134,7 @@ function MainTabNavigator(props: SharedNavigatorProps) {
             {...screenProps}
             language={props.language}
             continueWithSampleDocument={props.continueWithSampleDocument}
+            hasUploadedDocument={props.hasUploadedDocument}
             selectedUploadMethod={props.selectedUploadMethod}
             selectUploadMethod={props.selectUploadMethod}
             apiNotice={props.apiNotice}

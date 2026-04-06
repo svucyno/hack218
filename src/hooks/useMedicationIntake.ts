@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { getPatientTodayApi } from '../api/patient';
-import { reviewMedicinesApi } from '../api/review';
-import { generateScheduleApi } from '../api/schedule';
 import { updateDoseStatusApi } from '../api/doses';
-import { uploadSampleDocument } from '../api/upload';
 import {
   mapPatientTodayResponse,
+  mapRecentActivity,
   mapReviewResponseToReviewMedicines,
   mapScheduleResponseToMedicationItems,
   mapUploadResponseToPreview,
-  mapRecentActivity,
+  mapUploadResponseToReviewMedicines,
 } from '../api/mappers';
-import { demoDocument, defaultGeneratedSchedule, extractedLines, initialReviewMedicines } from '../data/intakeMockData';
+import { getPatientTodayApi } from '../api/patient';
+import { reviewMedicinesApi } from '../api/review';
+import { generateScheduleApi } from '../api/schedule';
+import { uploadSampleDocument } from '../api/upload';
+import { defaultGeneratedSchedule, demoDocument, extractedLines, initialReviewMedicines } from '../data/intakeMockData';
 import type { DemoScenarioKey, ReviewMedicine, UploadMethod, UploadPreviewData } from '../types/intake';
 import type {
   AdherenceActivityItem,
@@ -44,6 +45,10 @@ const initialUploadPreview: UploadPreviewData = {
   dateLabel: demoDocument.dateLabel,
   summary: demoDocument.summary,
 };
+
+function cloneReviewMedicines(items: ReviewMedicine[]): ReviewMedicine[] {
+  return items.map((item) => ({ ...item, warnings: [...item.warnings] }));
+}
 
 function buildScheduleFromReview(reviewMedicines: ReviewMedicine[]): MedicationItem[] {
   const active = reviewMedicines.filter((item) => !item.removed && item.confirmed);
@@ -187,8 +192,9 @@ function buildScenarioState(scenario: DemoScenarioKey): {
 }
 
 export function useMedicationIntake() {
-  const [selectedUploadMethod, setSelectedUploadMethod] = useState<UploadMethod | null>('sample');
-  const [reviewMedicines, setReviewMedicines] = useState<ReviewMedicine[]>(initialReviewMedicines);
+  const [selectedUploadMethod, setSelectedUploadMethod] = useState<UploadMethod | null>(null);
+  const [reviewMedicines, setReviewMedicines] = useState<ReviewMedicine[]>(cloneReviewMedicines(initialReviewMedicines));
+  const [reviewSeed, setReviewSeed] = useState<ReviewMedicine[]>(cloneReviewMedicines(initialReviewMedicines));
   const [scheduleMedicines, setScheduleMedicines] = useState<MedicationItem[]>(defaultGeneratedSchedule);
   const [activityHistory, setActivityHistory] = useState<AdherenceActivityItem[]>(initialActivityHistory);
   const [caregiverAlertHistory, setCaregiverAlertHistory] = useState<AdherenceActivityItem[]>([]);
@@ -198,11 +204,18 @@ export function useMedicationIntake() {
     'Choose a scenario to guide the MedBridge demo from the dashboard.',
   );
   const [uploadPreview, setUploadPreview] = useState<UploadPreviewData>(initialUploadPreview);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
+  const [currentReviewId, setCurrentReviewId] = useState<string | null>(null);
   const [apiNotice, setApiNotice] = useState<string | null>(null);
 
   const visibleReviewMedicines = useMemo(
     () => reviewMedicines.filter((item) => !item.removed),
     [reviewMedicines],
+  );
+
+  const hasUploadedDocument = useMemo(
+    () => Boolean(currentDocumentId),
+    [currentDocumentId],
   );
 
   const stats = useMemo(() => {
@@ -328,19 +341,30 @@ export function useMedicationIntake() {
   };
 
   const resetReviewMedicines = () => {
-    setReviewMedicines(initialReviewMedicines);
+    setReviewMedicines(cloneReviewMedicines(reviewSeed));
   };
 
   const continueWithSampleDocument = async () => {
     setSelectedUploadMethod('sample');
-    resetReviewMedicines();
+    setCurrentReviewId(null);
 
     try {
       const response = await uploadSampleDocument();
-      setUploadPreview(mapUploadResponseToPreview(response));
+      const mappedPreview = mapUploadResponseToPreview(response);
+      const mappedReviewMedicines = mapUploadResponseToReviewMedicines(response);
+      const seededReviewMedicines = mappedReviewMedicines.length > 0 ? mappedReviewMedicines : cloneReviewMedicines(initialReviewMedicines);
+
+      setUploadPreview(mappedPreview);
+      setCurrentDocumentId(response.document_id);
+      setReviewSeed(cloneReviewMedicines(seededReviewMedicines));
+      setReviewMedicines(cloneReviewMedicines(seededReviewMedicines));
       setApiNotice(null);
     } catch {
+      const fallbackReviewMedicines = cloneReviewMedicines(initialReviewMedicines);
       setUploadPreview(initialUploadPreview);
+      setCurrentDocumentId(initialUploadPreview.documentId);
+      setReviewSeed(cloneReviewMedicines(fallbackReviewMedicines));
+      setReviewMedicines(cloneReviewMedicines(fallbackReviewMedicines));
       setApiNotice('Backend upload is unavailable. Using local sample document.');
     }
   };
@@ -380,8 +404,9 @@ export function useMedicationIntake() {
 
   const generateSchedule = async () => {
     try {
-      const reviewResponse = await reviewMedicinesApi(
-        reviewMedicines.map((medicine) => ({
+      const reviewResponse = await reviewMedicinesApi({
+        documentId: currentDocumentId,
+        medicines: reviewMedicines.map((medicine) => ({
           id: medicine.id,
           name: medicine.name,
           dosage: medicine.dosage,
@@ -394,12 +419,22 @@ export function useMedicationIntake() {
           edited: medicine.edited,
           warnings: medicine.warnings,
         })),
-      );
+      });
 
       const normalizedReviewMedicines = mapReviewResponseToReviewMedicines(reviewResponse);
-      setReviewMedicines(normalizedReviewMedicines);
+      setReviewSeed(cloneReviewMedicines(normalizedReviewMedicines));
+      setReviewMedicines(cloneReviewMedicines(normalizedReviewMedicines));
 
-      const scheduleResponse = await generateScheduleApi(reviewResponse.medicines);
+      const nextDocumentId = reviewResponse.document_id ?? currentDocumentId;
+      setCurrentDocumentId(nextDocumentId ?? null);
+      const nextReviewId = reviewResponse.review_id ?? currentReviewId;
+      setCurrentReviewId(nextReviewId ?? null);
+
+      const scheduleResponse = await generateScheduleApi({
+        documentId: nextDocumentId,
+        reviewId: nextReviewId,
+        medicines: reviewResponse.medicines,
+      });
       const generated = mapScheduleResponseToMedicationItems(scheduleResponse);
       setScheduleMedicines(generated);
       setActiveReminderId(generated.find((item) => item.status === 'Pending')?.id ?? null);
@@ -492,7 +527,14 @@ export function useMedicationIntake() {
         period: dose.period === 'afternoon' ? 'Afternoon' : dose.period === 'night' ? 'Night' : 'Morning',
         foodTiming: dose.food_note.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
         note: dose.note,
-        status: dose.status === 'taken' ? 'Taken' : dose.status === 'missed' ? 'Missed' : dose.status === 'unconfirmed' ? 'Unconfirmed' : 'Pending',
+        status:
+          dose.status === 'taken'
+            ? 'Taken'
+            : dose.status === 'missed'
+              ? 'Missed'
+              : dose.status === 'unconfirmed'
+                ? 'Unconfirmed'
+                : 'Pending',
       })) as MedicationItem[];
 
       setScheduleMedicines(generated);
@@ -567,6 +609,7 @@ export function useMedicationIntake() {
 
   return {
     selectedUploadMethod,
+    hasUploadedDocument,
     reviewMedicines: visibleReviewMedicines,
     scheduleMedicines,
     activityHistory,

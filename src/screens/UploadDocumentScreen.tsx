@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { formatUploadMethodDetail, formatUploadMethodLabel, getTranslation, localizeKnownText, type AppLanguage, type TranslationKey } from '../constants/languages';
+import {
+  formatUploadMethodDetail,
+  formatUploadMethodLabel,
+  localizeKnownText,
+  type AppLanguage,
+  type TranslationKey,
+} from '../constants/languages';
 import { demoDocument, uploadMethods } from '../data/intakeMockData';
 import { DocumentPreviewCard } from '../components/DocumentPreviewCard';
 import { EmptyStateCard } from '../components/EmptyStateCard';
@@ -21,12 +27,22 @@ type Props = AppTabScreenProps<'UploadTab'> & {
   language: AppLanguage;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   selectedUploadMethod: UploadMethod | null;
+  hasUploadedDocument: boolean;
   selectUploadMethod: (method: UploadMethod) => void;
   continueWithSampleDocument: () => Promise<void>;
   apiNotice: string | null;
 };
 
-export function UploadDocumentScreen({ navigation, language, t, selectedUploadMethod, selectUploadMethod, continueWithSampleDocument, apiNotice }: Props) {
+export function UploadDocumentScreen({
+  navigation,
+  language,
+  t,
+  selectedUploadMethod,
+  hasUploadedDocument,
+  selectUploadMethod,
+  continueWithSampleDocument,
+  apiNotice,
+}: Props) {
   const [isOpening, setIsOpening] = useState(false);
 
   const handleContinue = async () => {
@@ -77,7 +93,11 @@ export function UploadDocumentScreen({ navigation, language, t, selectedUploadMe
 
         <View style={styles.footer}>
           <PrimaryButton icon="play-circle" label={t('upload.continue')} onPress={() => void handleContinue()} />
-          <SecondaryButton icon="arrow-right" label={selectedUploadMethod ? t('upload.review') : t('upload.home')} onPress={() => (selectedUploadMethod ? navigation.navigate('ExtractionPreview') : navigation.navigate('HomeTab'))} />
+          <SecondaryButton
+            icon="arrow-right"
+            label={hasUploadedDocument ? t('upload.review') : t('upload.home')}
+            onPress={() => (hasUploadedDocument ? navigation.navigate('ExtractionPreview') : navigation.navigate('HomeTab'))}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
