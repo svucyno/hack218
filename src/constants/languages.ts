@@ -591,3 +591,5 @@ export function localizeKnownText(language: AppLanguage, text: string): string {
   return formatInstructionLabel(language, text);
 }
 export { translations };
+
+export function formatPeriodLabel(language: AppLanguage, period: string): string { return formatInstructionLabel(language, period); }
