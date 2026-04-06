@@ -44,10 +44,14 @@ class AdherenceSummary(BaseModel):
 
 
 class GenerateScheduleRequest(BaseModel):
-    medicines: list[NormalizedMedicine]
+    document_id: str | None = None
+    review_id: str | None = None
+    medicines: list[NormalizedMedicine] | None = None
 
 
 class GenerateScheduleResponse(BaseModel):
     schedule_id: str
+    document_id: str | None = None
+    review_id: str | None = None
     groups: ScheduleGroups
     adherence_summary: AdherenceSummary

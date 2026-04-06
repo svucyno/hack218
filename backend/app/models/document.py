@@ -14,4 +14,5 @@ class UploadedDocument(SQLModel, table=True):
     extracted_text: str = Field(default="", sa_column=Column(Text, nullable=False))
     detected_lines_json: str = Field(default="[]", sa_column=Column(Text, nullable=False))
     warnings_json: str = Field(default="[]", sa_column=Column(Text, nullable=False))
+    medicine_candidates_json: str = Field(default="[]", sa_column=Column(Text, nullable=False))
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

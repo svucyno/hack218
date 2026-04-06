@@ -7,6 +7,8 @@ class ReviewWarning(str, Enum):
     missing_dosage = "missing-dosage"
     unclear_timing = "unclear-timing"
     possible_duplicate = "possible-duplicate"
+    possible_prn_instruction = "possible-prn-instruction"
+    low_clarity_line = "low-clarity-line"
 
 
 class ReviewMedicineInput(BaseModel):
@@ -37,10 +39,12 @@ class NormalizedMedicine(BaseModel):
 
 
 class ReviewMedicinesRequest(BaseModel):
+    document_id: str | None = None
     medicines: list[ReviewMedicineInput]
 
 
 class ReviewMedicinesResponse(BaseModel):
     review_id: str
+    document_id: str | None = None
     medicines: list[NormalizedMedicine]
     warnings: list[str]

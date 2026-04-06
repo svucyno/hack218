@@ -14,4 +14,4 @@ def review_medicines(
     payload: ReviewMedicinesRequest,
     session: Session = Depends(get_session),
 ) -> ReviewMedicinesResponse:
-    return review_medicines_response(session, payload.medicines)
+    return review_medicines_response(session, payload)

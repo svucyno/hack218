@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import settings
 from backend.app.db import init_db
-from backend.app.routers import doses, health, patient, review, schedule, upload
+from backend.app.routers import documents, doses, health, patient, review, schedule, upload
 
 
 app = FastAPI(title=settings.app_name)
@@ -28,3 +28,4 @@ app.include_router(review.router, prefix=settings.api_prefix)
 app.include_router(schedule.router, prefix=settings.api_prefix)
 app.include_router(patient.router, prefix=settings.api_prefix)
 app.include_router(doses.router, prefix=settings.api_prefix)
+app.include_router(documents.router, prefix=settings.api_prefix)
